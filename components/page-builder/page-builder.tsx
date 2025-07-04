@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -77,6 +77,11 @@ export function PageBuilder({ initialBlocks = [], onSave }: PageBuilderProps) {
   const [isEditing, setIsEditing] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showFileManager, setShowFileManager] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -279,38 +284,52 @@ export function PageBuilder({ initialBlocks = [], onSave }: PageBuilderProps) {
 
           {/* 메인 콘텐츠 영역 */}
           <div className={`flex-1 ${isEditing ? '' : 'max-w-none'}`}>
-            <DndContext
-              sensors={sensors}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext items={blocks.map(block => block.id)} strategy={verticalListSortingStrategy}>
-                <div className="space-y-6">
-                  {blocks.map((block) => (
-                    <SortableBlock
-                      key={block.id}
+            {mounted ? (
+              <DndContext
+                sensors={sensors}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={blocks.map(block => block.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-6">
+                    {blocks.map((block) => (
+                      <SortableBlock
+                        key={block.id}
+                        block={block}
+                        isEditing={isEditing}
+                        onUpdate={updateBlock}
+                        onDelete={deleteBlock}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+                <DragOverlay>
+                  {activeBlock && (
+                    <div className="opacity-80">
+                      <BlockRenderer
+                        block={activeBlock}
+                        isEditing={false}
+                        onUpdate={() => {}}
+                        onDelete={() => {}}
+                      />
+                    </div>
+                  )}
+                </DragOverlay>
+              </DndContext>
+            ) : (
+              <div className="space-y-6">
+                {blocks.map((block) => (
+                  <div key={block.id}>
+                    <BlockRenderer
                       block={block}
                       isEditing={isEditing}
                       onUpdate={updateBlock}
                       onDelete={deleteBlock}
                     />
-                  ))}
-                </div>
-              </SortableContext>
-
-              <DragOverlay>
-                {activeBlock && (
-                  <div className="opacity-80">
-                    <BlockRenderer
-                      block={activeBlock}
-                      isEditing={false}
-                      onUpdate={() => {}}
-                      onDelete={() => {}}
-                    />
                   </div>
-                )}
-              </DragOverlay>
-            </DndContext>
+                ))}
+              </div>
+            )}
 
             {blocks.length === 0 && (
               <div className="text-center py-12">
