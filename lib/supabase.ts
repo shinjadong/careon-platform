@@ -4,12 +4,24 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabaseAccessToken = process.env.NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+if (!supabaseUrl) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL');
 }
 
-// Regular client for general operations
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseAccessToken && !supabaseAnonKey) {
+  throw new Error('Missing both NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+}
+
+// Use access token as primary auth method if available
+const primaryKey = supabaseAccessToken || supabaseAnonKey;
+
+// Regular client for general operations  
+export const supabase = createClient(supabaseUrl, primaryKey, {
+  auth: {
+    autoRefreshToken: !supabaseAccessToken,
+    persistSession: !supabaseAccessToken
+  }
+});
 
 // Admin client with service role for storage operations
 export const supabaseAdmin = createClient(
@@ -58,7 +70,7 @@ export async function uploadFile(
 
     if (error) {
       console.error('Upload error:', error);
-      return { error: error.message };
+      return { error: `Upload failed: ${error.message}` };
     }
 
     // Get public URL
@@ -75,7 +87,8 @@ export async function uploadFile(
     };
   } catch (error) {
     console.error('Upload error:', error);
-    return { error: error instanceof Error ? error.message : 'Upload failed' };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown upload error';
+    return { error: `Upload failed: ${errorMessage}` };
   }
 }
 

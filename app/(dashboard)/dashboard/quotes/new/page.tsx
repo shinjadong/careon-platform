@@ -229,9 +229,9 @@ export default function NewQuotePage() {
                       {product.rentalPlans.map((plan) => (
                         <div key={plan.id} className="border rounded-md p-3">
                           <div className="flex justify-between items-center mb-2">
-                            <h4 className="font-medium">{plan.name}</h4>
+                            <h4 className="font-medium">플랜 {plan.id}</h4>
                             <span className="text-sm text-gray-500">
-                              {plan.contractPeriod}개월
+                              {plan.duration}개월
                             </span>
                           </div>
                           <div className="space-y-1 mb-3">
@@ -243,8 +243,8 @@ export default function NewQuotePage() {
                             </p>
                           </div>
                           <ul className="text-xs text-gray-600 space-y-1 mb-3">
-                            {plan.features.map((feature, index) => (
-                              <li key={index}>• {feature}</li>
+                            {plan.benefits.map((benefit, index) => (
+                              <li key={index}>• {benefit}</li>
                             ))}
                           </ul>
                           <Button
