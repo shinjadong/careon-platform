@@ -76,14 +76,17 @@ export async function uploadFile(
       });
 
     if (error) {
+      // StorageError 확장 속성들에 안전하게 접근
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorObj = error as any;
       console.error('Supabase upload error details:', {
         error: error,
         message: error.message,
-        details: error.details || 'No details available',
-        hint: error.hint || 'No hint available',
-        code: error.code || 'No code available'
+        details: errorObj.details || 'No details available',
+        hint: errorObj.hint || 'No hint available',
+        code: errorObj.code || 'No code available'
       });
-      return { error: `Upload failed: ${error.message || error.details || JSON.stringify(error)}` };
+      return { error: `Upload failed: ${error.message || errorObj.details || JSON.stringify(error)}` };
     }
 
     // Get public URL

@@ -1,6 +1,11 @@
 'use client';
 
+'use client';
+
 import { useState, useEffect } from 'react';
+
+// 빌드 시 정적 생성 방지
+export const dynamic = 'force-dynamic';
 import { useRouter } from 'next/navigation';
 import { useQuoteStore } from '@/stores/quote.store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

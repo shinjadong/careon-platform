@@ -24,13 +24,12 @@ const nextConfig = {
     ],
   },
   // 기타 Next.js 설정
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  // Turbopack 설정 (Next.js 15에서 안정화)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },
