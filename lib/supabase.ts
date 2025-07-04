@@ -82,7 +82,7 @@ export async function deleteFile(filePath: string): Promise<{ error?: string }> 
 }
 
 export async function listFiles(folder: string = ''): Promise<{
-  data?: Array<{ name: string; id: string; updated_at: string; metadata: any }>;
+  data?: Array<{ name: string; id: string; updated_at: string; metadata: Record<string, unknown> }>;
   error?: string;
 }> {
   try {

@@ -16,7 +16,7 @@ interface FileItem {
   name: string;
   id: string;
   updated_at: string;
-  metadata: any;
+  metadata: Record<string, unknown>;
   publicUrl?: string;
   type: 'image' | 'video' | 'document' | 'other';
   size: number;
@@ -36,7 +36,7 @@ export function FileManager({ isOpen, onClose, onSelectFile, fileType = 'all' }:
       const allFiles: FileItem[] = [];
 
       for (const folder of folders) {
-        const { data, error } = await listFiles(folder);
+        const { data } = await listFiles(folder);
         if (data) {
           const filesWithMetadata = data.map(file => ({
             ...file,

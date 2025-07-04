@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { VideoBlock } from '@/types/page-builder';
-import { Play, Settings, X, AlertCircle, Cloud, LinkIcon, Upload } from 'lucide-react';
+import { Play, Settings, X, AlertCircle, Cloud, LinkIcon } from 'lucide-react';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { UploadResult } from '@/lib/supabase';
 

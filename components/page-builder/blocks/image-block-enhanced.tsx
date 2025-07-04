@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { ImageBlock } from '@/types/page-builder';
 import Image from 'next/image';
-import { Upload, Link as LinkIcon, Settings, X, Cloud, HardDrive } from 'lucide-react';
+import { Upload, Link as LinkIcon, Settings, X, Cloud } from 'lucide-react';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { UploadResult } from '@/lib/supabase';
 
