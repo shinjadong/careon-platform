@@ -5,6 +5,21 @@ import { Block } from "@/types/page-builder";
 
 // 관리자용 랜딩 페이지 편집기
 export default function LandingEditPage() {
+  // 저장 함수 정의
+  const handleSave = (blocks: Block[]) => {
+    try {
+      // localStorage에 블록 데이터 저장
+      localStorage.setItem('landingPageBlocks', JSON.stringify(blocks));
+      console.log('페이지 저장 완료:', blocks.length, '개 블록');
+      
+      // 사용자에게 알림
+      alert('페이지가 성공적으로 저장되었습니다!');
+    } catch (error) {
+      console.error('페이지 저장 실패:', error);
+      alert('페이지 저장에 실패했습니다.');
+    }
+  };
+
   // 기존 랜딩 페이지 내용을 블록 형태로 변환
   const initialBlocks: Block[] = [
     {
@@ -280,7 +295,7 @@ export default function LandingEditPage() {
       </div>
 
       {/* 페이지 빌더 */}
-      <PageBuilder initialBlocks={initialBlocks} />
+      <PageBuilder initialBlocks={initialBlocks} onSave={handleSave} />
     </div>
   );
 }
