@@ -102,7 +102,7 @@ const MOCK_PRODUCTS: IProduct[] = [
 export default function NewQuotePage() {
   const router = useRouter();
   const { items, totalAmount, addItem, removeItem, updateItemQuantity, calculateTotal, clearQuote } = useQuoteStore();
-  const [selectedProducts, setSelectedProducts] = useState<IProduct[]>(MOCK_PRODUCTS);
+  const [selectedProducts] = useState<IProduct[]>(MOCK_PRODUCTS);
   const [quoteName, setQuoteName] = useState('');
   const [notes, setNotes] = useState('');
 

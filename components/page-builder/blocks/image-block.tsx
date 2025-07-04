@@ -86,7 +86,7 @@ export function ImageBlockRenderer({ block, isEditing, onUpdate }: ImageBlockRen
         setIsUploading(false);
       };
       reader.readAsDataURL(file);
-    } catch (error) {
+    } catch {
       setUploadError('파일 업로드 중 오류가 발생했습니다.');
       setIsUploading(false);
     }

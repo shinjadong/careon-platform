@@ -135,7 +135,7 @@ function SidebarContent({
   navigation, 
   pathname 
 }: { 
-  navigation: any[]; 
+  navigation: Array<{name: string; href: string; icon: React.ComponentType<{className?: string}>}>; 
   pathname: string; 
 }) {
   return (

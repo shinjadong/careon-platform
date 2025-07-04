@@ -19,9 +19,9 @@ export function QueryProvider({ children }: QueryProviderProps) {
             // 기본 cache time: 10분
             gcTime: 10 * 60 * 1000,
             // 에러 시 재시도 횟수
-            retry: (failureCount, error: any) => {
+            retry: (failureCount, error: unknown) => {
               // 401, 403, 404 에러는 재시도하지 않음
-              if (error?.status === 401 || error?.status === 403 || error?.status === 404) {
+              if ((error as {status?: number})?.status === 401 || (error as {status?: number})?.status === 403 || (error as {status?: number})?.status === 404) {
                 return false;
               }
               // 최대 3번까지 재시도

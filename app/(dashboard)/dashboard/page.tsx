@@ -8,9 +8,7 @@ import {
   ShoppingCartIcon, 
   DocumentTextIcon, 
   ClipboardDocumentListIcon,
-  CreditCardIcon,
-  ChartBarIcon,
-  Cog6ToothIcon 
+  CreditCardIcon
 } from '@heroicons/react/24/outline';
 
 export default function DashboardPage() {

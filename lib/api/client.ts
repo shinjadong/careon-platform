@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { useAuthStore } from '@/stores/auth.store';
 
 // API 응답 타입
-export interface IApiResponse<T = any> {
+export interface IApiResponse<T = unknown> {
   data: T;
   message?: string;
   status: number;
@@ -12,7 +12,7 @@ export interface IApiResponse<T = any> {
 export interface IApiError {
   code: string;
   message: string;
-  details?: any;
+  details?: unknown;
   status?: number;
 }
 
@@ -102,13 +102,13 @@ class ApiClient {
   }
 
   // POST 요청
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.post<IApiResponse<T>>(url, data, config);
     return response.data.data;
   }
 
   // PUT 요청
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.put<IApiResponse<T>>(url, data, config);
     return response.data.data;
   }
@@ -120,7 +120,7 @@ class ApiClient {
   }
 
   // PATCH 요청
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.patch<IApiResponse<T>>(url, data, config);
     return response.data.data;
   }
