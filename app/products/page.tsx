@@ -1,18 +1,25 @@
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
-import { ProductCard } from '@/components/product/product-card';
+'use client';
+
+import { useState } from 'react';
 import { IProduct } from '@/types';
+import { Button } from '@/components/ui/button';
 
 // 임시 데이터 (나중에 API로 대체)
 const mockProducts: IProduct[] = [
   {
     id: '1',
+    categoryId: 1,
     name: '스마트 키오스크 Pro',
+    manufacturer: '삼성',
     model: 'KS-2024-001',
     description: '터치스크린 기반의 스마트 주문 키오스크로 고객 주문 과정을 간소화하고 매장 운영 효율성을 극대화합니다.',
-    manufacturer: '삼성',
-    category: 'KIOSK',
     features: ['24인치 터치스크린', '음성인식 지원', 'QR코드 결제', '다국어 지원', '원격 관리'],
+    specifications: {
+      dimensions: '60cm x 40cm x 180cm',
+      weight: '45kg',
+      power: '220V',
+      connectivity: 'WiFi, Ethernet'
+    },
     images: [
       {
         id: '1',
@@ -24,34 +31,44 @@ const mockProducts: IProduct[] = [
     rentalPlans: [
       {
         id: '1',
-        name: '기본 플랜',
+        productId: '1',
+        duration: 24,
         monthlyFee: 89000,
         installationFee: 150000,
-        contractPeriod: 24,
-        features: ['기본 설치', '월 1회 점검', '소프트웨어 업데이트'],
+        maintenanceFee: 10000,
+        deposit: 100000,
+        benefits: ['기본 설치', '월 1회 점검', '소프트웨어 업데이트'],
       },
       {
         id: '2',
-        name: '프리미엄 플랜',
+        productId: '1',
+        duration: 36,
         monthlyFee: 129000,
         installationFee: 100000,
-        contractPeriod: 36,
-        features: ['프리미엄 설치', '주 1회 점검', '24시간 지원', '맞춤 디자인'],
+        maintenanceFee: 8000,
+        deposit: 80000,
+        benefits: ['프리미엄 설치', '주 1회 점검', '24시간 지원', '맞춤 디자인'],
       },
     ],
+    partnerId: 'partner-1',
+    tags: ['인기', '신제품'],
     isRecommended: true,
-    status: 'ACTIVE',
     createdAt: new Date(),
-    updatedAt: new Date(),
   },
   {
     id: '2',
+    categoryId: 1,
     name: 'POS 시스템 올인원',
+    manufacturer: 'LG',
     model: 'POS-2024-002',
     description: '매장 운영에 필요한 모든 기능을 하나로 통합한 올인원 POS 시스템입니다.',
-    manufacturer: 'LG',
-    category: 'POS',
     features: ['15인치 터치스크린', '영수증 프린터', '바코드 스캐너', '카드 리더기', '재고 관리'],
+    specifications: {
+      dimensions: '38cm x 32cm x 42cm',
+      weight: '8kg',
+      power: '220V',
+      connectivity: 'WiFi, Ethernet, Bluetooth'
+    },
     images: [
       {
         id: '2',
@@ -63,119 +80,162 @@ const mockProducts: IProduct[] = [
     rentalPlans: [
       {
         id: '3',
-        name: '스탠다드',
+        productId: '2',
+        duration: 12,
         monthlyFee: 65000,
-        installationFee: 80000,
-        contractPeriod: 24,
-        features: ['기본 설치', '월 1회 점검', '기술 지원'],
+        installationFee: 100000,
+        maintenanceFee: 8000,
+        deposit: 80000,
+        benefits: ['기본 설치', '교육 제공', '기술지원'],
       },
-    ],
-    isRecommended: false,
-    status: 'ACTIVE',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'CCTV 보안 시스템',
-    model: 'CCTV-2024-003',
-    description: '4K 화질의 고성능 CCTV로 매장 보안과 고객 안전을 책임집니다.',
-    manufacturer: '하이크비전',
-    category: 'CCTV',
-    features: ['4K 화질', '야간 촬영', '원격 모니터링', '움직임 감지', '클라우드 저장'],
-    images: [
-      {
-        id: '3',
-        url: '/images/cctv-1.jpg',
-        alt: 'CCTV 보안 시스템',
-        isMain: true,
-      },
-    ],
-    rentalPlans: [
       {
         id: '4',
-        name: '베이직',
-        monthlyFee: 45000,
-        installationFee: 120000,
-        contractPeriod: 36,
-        features: ['기본 설치', '월 1회 점검', '원격 지원'],
+        productId: '2',
+        duration: 24,
+        monthlyFee: 55000,
+        installationFee: 80000,
+        maintenanceFee: 6000,
+        deposit: 60000,
+        benefits: ['프리미엄 설치', '고급 교육', '24시간 기술지원', '데이터 분석'],
       },
     ],
-    isRecommended: true,
-    status: 'ACTIVE',
+    partnerId: 'partner-1',
+    tags: ['추천'],
+    isRecommended: false,
     createdAt: new Date(),
-    updatedAt: new Date(),
   },
 ];
 
 export default function ProductsPage() {
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+
+  const categories = [
+    { id: 'ALL', name: '전체' },
+    { id: 'KIOSK', name: '키오스크' },
+    { id: 'POS', name: 'POS 시스템' },
+    { id: 'CCTV', name: 'CCTV' },
+    { id: 'KITCHEN', name: '주방기기' },
+  ];
+
+  const filteredProducts = selectedCategory === 'ALL' 
+    ? mockProducts 
+    : mockProducts.filter(product => product.categoryId === 1); // Simplified for demo
+
   return (
-    <>
-      <Header />
-      <main className="min-h-screen bg-gray-50">
-        {/* 헤더 섹션 */}
-        <div className="bg-white border-b">
-          <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-                상품 카탈로그
-              </h1>
-              <p className="mt-6 text-lg leading-8 text-gray-600">
-                비즈니스 성공을 위한 최고의 장비들을 만나보세요
-              </p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* 헤더 */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h1 className="text-3xl font-bold text-gray-900">렌탈 상품</h1>
+          <p className="mt-2 text-gray-600">
+            비즈니스 성장을 위한 최적의 렌탈 솔루션을 찾아보세요
+          </p>
         </div>
+      </div>
 
-        {/* 필터 및 정렬 섹션 */}
-        <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                전체 상품 ({mockProducts.length})
-              </h2>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* 카테고리 필터 */}
-              <select className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm">
-                <option value="">전체 카테고리</option>
-                <option value="KIOSK">키오스크</option>
-                <option value="POS">POS 시스템</option>
-                <option value="CCTV">CCTV</option>
-                <option value="KITCHEN">주방기기</option>
-              </select>
-              
-              {/* 정렬 */}
-              <select className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm">
-                <option value="latest">최신순</option>
-                <option value="price-low">가격 낮은순</option>
-                <option value="price-high">가격 높은순</option>
-                <option value="popular">인기순</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* 상품 그리드 */}
-        <div className="mx-auto max-w-7xl px-6 pb-16 lg:px-8">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {mockProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 카테고리 필터 */}
+        <div className="mb-8">
+          <div className="flex flex-wrap gap-4">
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? 'primary' : 'outline'}
+                onClick={() => setSelectedCategory(category.id)}
+              >
+                {category.name}
+              </Button>
             ))}
           </div>
         </div>
 
-        {/* 더 많은 상품 로드 버튼 */}
-        <div className="mx-auto max-w-7xl px-6 pb-16 lg:px-8">
-          <div className="text-center">
-            <button className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 hover:bg-gray-50">
-              더 많은 상품 보기
-            </button>
-          </div>
+        {/* 상품 그리드 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredProducts.map((product) => (
+            <div
+              key={product.id}
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+            >
+              {/* 상품 이미지 */}
+              <div className="aspect-w-16 aspect-h-9 bg-gray-200">
+                {product.images.find(img => img.isMain) && (
+                  <img
+                    src={product.images.find(img => img.isMain)?.url}
+                    alt={product.images.find(img => img.isMain)?.alt}
+                    className="w-full h-48 object-cover"
+                  />
+                )}
+              </div>
+
+              {/* 상품 정보 */}
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-500">{product.manufacturer}</span>
+                  {product.isRecommended && (
+                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                      추천
+                    </span>
+                  )}
+                </div>
+                
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {product.name}
+                </h3>
+                
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {product.description}
+                </p>
+
+                {/* 주요 기능 */}
+                <div className="mb-4">
+                  <div className="flex flex-wrap gap-1">
+                    {product.features.slice(0, 3).map((feature, index) => (
+                      <span
+                        key={index}
+                        className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                      >
+                        {feature}
+                      </span>
+                    ))}
+                    {product.features.length > 3 && (
+                      <span className="text-xs text-gray-500">
+                        +{product.features.length - 3}개
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 가격 정보 */}
+                <div className="mb-4">
+                  <p className="text-lg font-bold text-primary">
+                    월 {(product.rentalPlans[0]?.monthlyFee || 0).toLocaleString()}원부터
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    설치비: {(product.rentalPlans[0]?.installationFee || 0).toLocaleString()}원
+                  </p>
+                </div>
+
+                {/* 액션 버튼 */}
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1">
+                    상세보기
+                  </Button>
+                  <Button variant="primary" className="flex-1">
+                    견적요청
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </main>
-      <Footer />
-    </>
+
+        {/* 상품이 없는 경우 */}
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">해당 카테고리에 상품이 없습니다.</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
-} 
+}

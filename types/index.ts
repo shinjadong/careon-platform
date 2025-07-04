@@ -50,6 +50,7 @@ export interface IProduct {
 }
 
 export interface IProductImage {
+  id?: string; // Optional ID for image identification
   url: string;
   alt: string;
   isMain: boolean;
