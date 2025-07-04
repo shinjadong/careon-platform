@@ -73,8 +73,7 @@ export default function LandingEditPage() {
       type: "heading",
       content: {
         level: 2,
-        text: "왜 케어온인가?",
-        alignment: "center"
+        text: "왜 케어온인가?"
       },
       settings: {
         margin: { top: 80, bottom: 20 }
@@ -84,9 +83,7 @@ export default function LandingEditPage() {
       id: "text-1",
       type: "text",
       content: {
-        text: "대한민국 1위 B2B 렌탈 플랫폼의 차별화된 가치",
-        alignment: "center",
-        fontSize: "lg"
+        text: "대한민국 1위 B2B 렌탈 플랫폼의 차별화된 가치"
       },
       settings: {
         margin: { bottom: 60 }
@@ -142,7 +139,6 @@ export default function LandingEditPage() {
         src: "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
         alt: "현대적인 사무실 환경",
         caption: "최신 장비로 완벽하게 구성된 사무 공간",
-        alignment: "center",
         width: 600,
         height: 400
       },
@@ -154,11 +150,8 @@ export default function LandingEditPage() {
       id: "video-1",
       type: "video",
       content: {
-        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        caption: "케어온과 함께하는 성장의 여정 🚀",
-        alignment: "center",
-        width: 560,
-        height: 315
+        src: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        type: "youtube"
       },
       settings: {
         margin: { bottom: 40 }
@@ -259,8 +252,7 @@ export default function LandingEditPage() {
         text: "카카오톡으로 상담하기",
         link: "#",
         variant: "outline",
-        size: "lg",
-        alignment: "center"
+        size: "lg"
       },
       settings: {
         margin: { bottom: 40 }

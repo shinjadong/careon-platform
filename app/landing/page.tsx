@@ -1,14 +1,11 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 // 고객용 읽기 전용 랜딩 페이지
 export default function LandingPage() {
@@ -168,28 +165,33 @@ export default function LandingPage() {
 
                 <div>
                   <Label htmlFor="businessType">업종 선택</Label>
-                  <Select onValueChange={(value) => setFormData({...formData, businessType: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="업종을 선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="restaurant">요식업</SelectItem>
-                      <SelectItem value="cafe">카페</SelectItem>
-                      <SelectItem value="beauty">미용실/네일샵</SelectItem>
-                      <SelectItem value="convenience">편의점</SelectItem>
-                      <SelectItem value="office">사무실</SelectItem>
-                      <SelectItem value="fitness">헬스장/필라테스</SelectItem>
-                      <SelectItem value="other">기타</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <select
+                    id="businessType"
+                    value={formData.businessType}
+                    onChange={(e) => setFormData({...formData, businessType: e.target.value})}
+                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">업종을 선택하세요</option>
+                    <option value="restaurant">요식업</option>
+                    <option value="cafe">카페</option>
+                    <option value="beauty">미용실/네일샵</option>
+                    <option value="convenience">편의점</option>
+                    <option value="office">사무실</option>
+                    <option value="fitness">헬스장/필라테스</option>
+                    <option value="other">기타</option>
+                  </select>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
-                    <Checkbox
+                    <input
+                      type="checkbox"
                       id="privacy"
                       checked={formData.privacyConsent}
-                      onCheckedChange={(checked) => setFormData({...formData, privacyConsent: checked as boolean})}
+                      onChange={(e) => setFormData({...formData, privacyConsent: e.target.checked})}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      required
                     />
                     <Label htmlFor="privacy" className="text-sm">
                       (필수) 개인정보 수집 및 이용에 동의합니다
@@ -197,10 +199,12 @@ export default function LandingPage() {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <Checkbox
+                    <input
+                      type="checkbox"
                       id="marketing"
                       checked={formData.marketingConsent}
-                      onCheckedChange={(checked) => setFormData({...formData, marketingConsent: checked as boolean})}
+                      onChange={(e) => setFormData({...formData, marketingConsent: e.target.checked})}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <Label htmlFor="marketing" className="text-sm">
                       (선택) 마케팅 정보 수신에 동의합니다
