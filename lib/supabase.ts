@@ -2,12 +2,26 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseAccessToken = process.env.NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
+// Regular client for general operations
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Admin client with service role for storage operations
+export const supabaseAdmin = createClient(
+  supabaseUrl, 
+  supabaseAccessToken || supabaseAnonKey,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 // Storage bucket name
 export const STORAGE_BUCKET = 'shortformai';
@@ -34,8 +48,8 @@ export async function uploadFile(
     const fileName = `${timestamp}_${randomString}.${fileExtension}`;
     const filePath = `${CAREON_FOLDER}/${folder}/${fileName}`;
 
-    // Upload file to Supabase Storage
-    const { data, error } = await supabase.storage
+    // Upload file to Supabase Storage using admin client for better permissions
+    const { data, error } = await supabaseAdmin.storage
       .from(STORAGE_BUCKET)
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -48,7 +62,7 @@ export async function uploadFile(
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = supabaseAdmin.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(filePath);
 
@@ -67,7 +81,7 @@ export async function uploadFile(
 
 export async function deleteFile(filePath: string): Promise<{ error?: string }> {
   try {
-    const { error } = await supabase.storage
+    const { error } = await supabaseAdmin.storage
       .from(STORAGE_BUCKET)
       .remove([filePath]);
 
@@ -88,7 +102,7 @@ export async function listFiles(folder: string = ''): Promise<{
   try {
     const path = folder ? `${CAREON_FOLDER}/${folder}` : CAREON_FOLDER;
     
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseAdmin.storage
       .from(STORAGE_BUCKET)
       .list(path, {
         limit: 100,

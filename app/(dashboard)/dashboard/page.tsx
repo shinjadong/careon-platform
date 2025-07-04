@@ -118,8 +118,6 @@ export default function DashboardPage() {
                 <p className={`text-sm mt-1 ${
                   stat.changeType === 'positive' 
                     ? 'text-green-600' 
-                    : stat.changeType === 'negative' 
-                    ? 'text-red-600' 
                     : 'text-gray-600'
                 }`}>
                   {stat.change}
