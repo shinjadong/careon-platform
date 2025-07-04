@@ -8,6 +8,7 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation = [
+    { name: '서비스 소개', href: '/landing' },
     { name: '상품', href: '/products' },
     { name: '솔루션', href: '/solutions' },
     { name: '파트너', href: '/partners' },
