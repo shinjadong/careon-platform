@@ -2,45 +2,33 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabaseAccessToken = process.env.NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 if (!supabaseUrl) {
   throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL');
 }
 
-if (!supabaseAccessToken) {
-  console.warn('NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN is recommended for full functionality');
-  if (!supabaseAnonKey) {
-    throw new Error('Missing both NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN and NEXT_PUBLIC_SUPABASE_ANON_KEY');
-  }
+if (!supabaseAnonKey) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
 }
 
-// Use access token as primary auth method if available
-const primaryKey = supabaseAccessToken || supabaseAnonKey || 'fallback-key';
-
-// Create client with access token priority
-const clientOptions = {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  },
-  global: {
-    headers: supabaseAccessToken ? {
-      'Authorization': `Bearer ${supabaseAccessToken}`,
-      'apikey': supabaseAccessToken
-    } : undefined
-  }
-};
-
 // Regular client for general operations  
-export const supabase = createClient(supabaseUrl, primaryKey, clientOptions);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Admin client with service role for storage operations (same as regular for now)
-export const supabaseAdmin = supabase;
+// Admin client with service role for storage operations
+export const supabaseAdmin = supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  : supabase; // Fallback to regular client if no service key
 
 // Storage bucket name
 export const STORAGE_BUCKET = 'careon';
-export const CAREON_FOLDER = 'uploads';
+
+
 
 export interface UploadResult {
   data?: {
@@ -53,22 +41,30 @@ export interface UploadResult {
 
 export async function uploadFile(
   file: File,
-  folder: string = 'uploads'
+  folder: string = 'general'
 ): Promise<UploadResult> {
   try {
-    // Check if we have proper authentication
-    if (!supabaseAccessToken && !supabaseAnonKey) {
-      return { error: 'No authentication token available' };
-    }
+    console.log('Starting file upload:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      folder: folder
+    });
+
+    // Skip bucket creation and proceed directly to upload
+    // The bucket should be manually created in Supabase Dashboard
+
     // Generate unique filename with timestamp
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 8);
     const fileExtension = file.name.split('.').pop();
     const fileName = `${timestamp}_${randomString}.${fileExtension}`;
-    const filePath = `${CAREON_FOLDER}/${folder}/${fileName}`;
+    const filePath = `${folder}/${fileName}`;
 
-    // Upload file to Supabase Storage using admin client for better permissions
-    const { data, error } = await supabaseAdmin.storage
+    console.log('Uploading to path:', filePath);
+
+    // Use regular client for uploads (less restrictive)
+    const { data, error } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -76,23 +72,27 @@ export async function uploadFile(
       });
 
     if (error) {
-      // StorageError 확장 속성들에 안전하게 접근
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const errorObj = error as any;
-      console.error('Supabase upload error details:', {
-        error: error,
+      console.error('Supabase upload error:', {
         message: error.message,
-        details: errorObj.details || 'No details available',
-        hint: errorObj.hint || 'No hint available',
-        code: errorObj.code || 'No code available'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        details: (error as any).details || 'No details available',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hint: (error as any).hint || 'No hint available',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        statusCode: (error as any).statusCode
       });
-      return { error: `Upload failed: ${error.message || errorObj.details || JSON.stringify(error)}` };
+      
+      return { error: `Upload failed: ${error.message}` };
     }
 
+    console.log('Upload successful:', data);
+
     // Get public URL
-    const { data: urlData } = supabaseAdmin.storage
+    const { data: urlData } = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(filePath);
+
+    console.log('Public URL generated:', urlData.publicUrl);
 
     return {
       data: {
@@ -103,7 +103,7 @@ export async function uploadFile(
     };
   } catch (error) {
     console.error('Upload exception:', error);
-    const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown upload error';
     return { error: `Upload exception: ${errorMessage}` };
   }
 }
@@ -129,7 +129,7 @@ export async function listFiles(folder: string = ''): Promise<{
   error?: string;
 }> {
   try {
-    const path = folder ? `${CAREON_FOLDER}/${folder}` : CAREON_FOLDER;
+    const path = folder || '';
     
     const { data, error } = await supabaseAdmin.storage
       .from(STORAGE_BUCKET)

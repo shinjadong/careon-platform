@@ -54,20 +54,49 @@ export function ImageBlockRendererEnhanced({ block, isEditing, onUpdate }: Image
            src.toLowerCase().includes('tenor');
   };
 
-  const handleSupabaseUpload = useCallback((result: UploadResult) => {
-    if (result.data) {
-      setImageData({
-        ...imageData,
-        src: result.data.publicUrl,
-        alt: imageData.alt || '업로드된 이미지',
-      });
-      setUploadError(null);
+  const handleSupabaseUpload = async (results: UploadResult[] | UploadResult) => {
+    console.log('Upload results:', results);
+    console.log('Full result object:', JSON.stringify(results, null, 2));
+    
+    // results가 배열인지 단일 객체인지 확인
+    const result = Array.isArray(results) ? results[0] : results;
+    
+    if (result) {
+      console.log('Result data:', result.data);
+      console.log('Result error:', result.error);
+      
+      if (result.data && result.data.publicUrl) {
+        console.log('Setting image URL to:', result.data.publicUrl);
+        
+        onUpdate?.({
+          ...block,
+          content: {
+            ...block.content,
+            src: result.data.publicUrl,
+            alt: block.content.alt || 'Uploaded image'
+          }
+        });
+        
+        setIsEditingImage(false);
+        setUploadError(null);
+      } else if (result.error) {
+        console.error('Upload failed with error:', result.error);
+        setUploadError(result.error);
+      } else {
+        console.error('Upload failed: No valid data or URL received');
+        console.log('Available result properties:', Object.keys(result.data || {}));
+        setUploadError('업로드는 성공했지만 이미지 URL을 가져올 수 없습니다.');
+      }
+    } else {
+      console.error('Upload failed: No results received');
+      setUploadError('업로드 결과를 받지 못했습니다.');
     }
-  }, [imageData]);
+  };
 
-  const handleUploadError = useCallback((error: string) => {
-    setUploadError(error);
-  }, []);
+  const handleUploadError = (error: string) => {
+    console.error('Upload error:', error);
+    alert(`이미지 업로드 실패: ${error}`);
+  };
 
   const handleUrlChange = (url: string) => {
     setImageData({ ...imageData, src: url });
@@ -142,7 +171,7 @@ export function ImageBlockRendererEnhanced({ block, isEditing, onUpdate }: Image
               onUploadComplete={handleSupabaseUpload}
               onUploadError={handleUploadError}
               accept="image/*,.gif"
-              maxSize={10 * 1024 * 1024} // 10MB
+              maxSize={500 * 1024 * 1024} // 500MB
               folder="images"
               className="w-full"
             />

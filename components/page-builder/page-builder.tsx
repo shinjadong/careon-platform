@@ -33,9 +33,13 @@ interface SortableBlockProps {
   isEditing: boolean;
   onUpdate: (block: Block) => void;
   onDelete: (id: string) => void;
+  onMoveUp: (id: string) => void;
+  onMoveDown: (id: string) => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
 }
 
-function SortableBlock({ block, isEditing, onUpdate, onDelete }: SortableBlockProps) {
+function SortableBlock({ block, isEditing, onUpdate, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown }: SortableBlockProps) {
   const {
     attributes,
     listeners,
@@ -53,7 +57,7 @@ function SortableBlock({ block, isEditing, onUpdate, onDelete }: SortableBlockPr
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      <div className={`relative ${isEditing ? 'border-2 border-dashed border-gray-300 rounded-lg' : ''}`}>
+      <div className={`relative group ${isEditing ? 'border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400' : ''}`}>
         {isEditing && (
           <div className="absolute top-2 left-2 z-10 bg-gray-800 text-white p-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity">
             <div {...listeners} className="cursor-move p-1">
@@ -66,6 +70,10 @@ function SortableBlock({ block, isEditing, onUpdate, onDelete }: SortableBlockPr
           isEditing={isEditing}
           onUpdate={onUpdate}
           onDelete={onDelete}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
         />
       </div>
     </div>
@@ -153,6 +161,20 @@ export function PageBuilder({ initialBlocks = [], onSave }: PageBuilderProps) {
 
   const deleteBlock = (id: string) => {
     setBlocks(blocks.filter(block => block.id !== id));
+  };
+
+  const moveBlockUp = (id: string) => {
+    const currentIndex = blocks.findIndex(block => block.id === id);
+    if (currentIndex > 0) {
+      setBlocks(arrayMove(blocks, currentIndex, currentIndex - 1));
+    }
+  };
+
+  const moveBlockDown = (id: string) => {
+    const currentIndex = blocks.findIndex(block => block.id === id);
+    if (currentIndex < blocks.length - 1) {
+      setBlocks(arrayMove(blocks, currentIndex, currentIndex + 1));
+    }
   };
 
   const handleSave = () => {
@@ -294,13 +316,17 @@ export function PageBuilder({ initialBlocks = [], onSave }: PageBuilderProps) {
               >
                 <SortableContext items={blocks.map(block => block.id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-6">
-                    {blocks.map((block) => (
+                    {blocks.map((block, index) => (
                       <SortableBlock
                         key={block.id}
                         block={block}
                         isEditing={isEditing}
                         onUpdate={updateBlock}
                         onDelete={deleteBlock}
+                        onMoveUp={moveBlockUp}
+                        onMoveDown={moveBlockDown}
+                        canMoveUp={index > 0}
+                        canMoveDown={index < blocks.length - 1}
                       />
                     ))}
                   </div>
@@ -313,6 +339,10 @@ export function PageBuilder({ initialBlocks = [], onSave }: PageBuilderProps) {
                         isEditing={false}
                         onUpdate={() => {}}
                         onDelete={() => {}}
+                        onMoveUp={() => {}}
+                        onMoveDown={() => {}}
+                        canMoveUp={false}
+                        canMoveDown={false}
                       />
                     </div>
                   )}
@@ -320,13 +350,17 @@ export function PageBuilder({ initialBlocks = [], onSave }: PageBuilderProps) {
               </DndContext>
             ) : (
               <div className="space-y-6">
-                {blocks.map((block) => (
+                {blocks.map((block, index) => (
                   <div key={block.id}>
                     <BlockRenderer
                       block={block}
                       isEditing={isEditing}
                       onUpdate={updateBlock}
                       onDelete={deleteBlock}
+                      onMoveUp={moveBlockUp}
+                      onMoveDown={moveBlockDown}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < blocks.length - 1}
                     />
                   </div>
                 ))}

@@ -216,7 +216,7 @@ export function VideoBlockRenderer({ block, isEditing, onUpdate }: VideoBlockRen
               onUploadComplete={handleSupabaseUpload}
               onUploadError={handleUploadError}
               accept="video/*"
-              maxSize={100 * 1024 * 1024} // 100MB
+              maxSize={1000 * 1024 * 1024} // 1000MB
               folder="videos"
               className="w-full"
             />

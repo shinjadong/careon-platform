@@ -28,8 +28,8 @@ export function FileUploader({
   onUploadStart,
   onUploadError,
   accept = 'image/*,video/*',
-  maxSize = 50 * 1024 * 1024, // 50MB default
-  folder = 'uploads',
+  maxSize = 1000 * 1024 * 1024, // 1000MB default
+  folder = 'careon',
   className = '',
   children
 }: FileUploaderProps) {

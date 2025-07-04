@@ -42,7 +42,7 @@ export function FileManager({ isOpen, onClose, onSelectFile, fileType = 'all' }:
             ...file,
             type: getFileType(file.name),
             size: typeof file.metadata?.size === 'number' ? file.metadata.size : 0,
-            publicUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/careon/uploads/${folder}/${file.name}`
+            publicUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/careon/${folder}/${file.name}`
           }));
           allFiles.push(...filesWithMetadata);
         }

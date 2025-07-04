@@ -9,19 +9,28 @@ import { ButtonBlockRenderer } from './blocks/button-block';
 import { SpacerBlockRenderer } from './blocks/spacer-block';
 import { HeroBlockRenderer } from './blocks/hero-block';
 import { HTMLBlockRenderer } from './blocks/html-block';
+import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 
 interface BlockRendererProps {
   block: Block;
   isEditing?: boolean;
   onUpdate?: (block: Block) => void;
   onDelete?: (id: string) => void;
+  onMoveUp?: (id: string) => void;
+  onMoveDown?: (id: string) => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }
 
 export function BlockRenderer({ 
   block, 
   isEditing = false, 
   onUpdate, 
-  onDelete 
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false
 }: BlockRendererProps) {
   const renderBlock = (block: Block) => {
     switch (block.type) {
@@ -63,12 +72,44 @@ export function BlockRenderer({
     >
       {isEditing && (
         <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => onDelete?.(block.id)}
-            className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-          >
-            삭제
-          </button>
+          <div className="flex items-center space-x-1">
+            {/* 위로 이동 버튼 */}
+            <button
+              onClick={() => onMoveUp?.(block.id)}
+              disabled={!canMoveUp}
+              className={`p-2 rounded transition-colors ${
+                canMoveUp
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              title="위로 이동"
+            >
+              <ChevronUp className="w-4 h-4" />
+            </button>
+            
+            {/* 아래로 이동 버튼 */}
+            <button
+              onClick={() => onMoveDown?.(block.id)}
+              disabled={!canMoveDown}
+              className={`p-2 rounded transition-colors ${
+                canMoveDown
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              title="아래로 이동"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            
+            {/* 삭제 버튼 */}
+            <button
+              onClick={() => onDelete?.(block.id)}
+              className="bg-red-500 text-white p-2 rounded hover:bg-red-600 transition-colors"
+              title="삭제"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
       {renderBlock(block)}
