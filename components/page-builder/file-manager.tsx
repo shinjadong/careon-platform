@@ -90,7 +90,7 @@ export function FileManager({ isOpen, onClose, onSelectFile, fileType = 'all' }:
   const getFileIcon = (type: string) => {
     switch (type) {
       case 'image':
-        return <Image className="w-5 h-5 text-blue-600" />;
+        return <Image className="w-5 h-5 text-blue-600" aria-label="이미지 파일" />;
       case 'video':
         return <Video className="w-5 h-5 text-purple-600" />;
       default:
@@ -152,7 +152,7 @@ export function FileManager({ isOpen, onClose, onSelectFile, fileType = 'all' }:
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <Image className="w-4 h-4 inline mr-2" />
+              <Image className="w-4 h-4 inline mr-2" aria-label="이미지" />
               이미지
             </button>
             <button
@@ -193,6 +193,7 @@ export function FileManager({ isOpen, onClose, onSelectFile, fileType = 'all' }:
                   {/* File preview */}
                   <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                     {file.type === 'image' ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={file.publicUrl}
                         alt={file.name}

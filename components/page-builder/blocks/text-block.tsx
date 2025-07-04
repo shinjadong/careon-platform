@@ -208,6 +208,7 @@ export function TextBlockRenderer({ block, isEditing, onUpdate }: TextBlockRende
               ),
               // 이미지 최적화
               img: ({ src, alt, ...props }) => (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={src} alt={alt} className="max-w-full h-auto rounded-lg" {...props} />
               ),
             }}

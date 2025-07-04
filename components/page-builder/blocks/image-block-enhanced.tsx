@@ -184,6 +184,7 @@ export function ImageBlockRendererEnhanced({ block, isEditing, onUpdate }: Image
             </div>
             <div className="p-4 bg-white">
               {isGif(imageData.src) ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={imageData.src}
                   alt={imageData.alt}
@@ -318,6 +319,7 @@ export function ImageBlockRendererEnhanced({ block, isEditing, onUpdate }: Image
     <div className="relative group">
       {isGif(block.content.src) ? (
         // GIF는 img 태그 사용 (애니메이션 유지)
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={block.content.src}
           alt={block.content.alt}

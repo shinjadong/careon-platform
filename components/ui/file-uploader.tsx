@@ -170,7 +170,7 @@ export function FileUploader({
     const type = getFileType(file.name);
     switch (type) {
       case 'image':
-        return <Image className="w-4 h-4" />;
+        return <Image className="w-4 h-4" aria-label="이미지 파일" />;
       case 'video':
         return <Video className="w-4 h-4" />;
       default:
