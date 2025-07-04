@@ -339,13 +339,13 @@ export default function NewQuotePage() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-gray-600">월 렌탈료 합계</span>
                       <span className="font-medium">
-                        {formatCurrency(items.reduce((sum, item) => sum + (item.monthlyFee * item.quantity), 0))}
+                        {formatCurrency(items.reduce((sum, item) => sum + ((item.monthlyFee || 0) * item.quantity), 0))}
                       </span>
                     </div>
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-gray-600">설치비 합계</span>
                       <span className="font-medium">
-                        {formatCurrency(items.reduce((sum, item) => sum + (item.installationFee * item.quantity), 0))}
+                        {formatCurrency(items.reduce((sum, item) => sum + ((item.installationFee || 0) * item.quantity), 0))}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-lg font-semibold text-primary border-t pt-2">

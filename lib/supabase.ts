@@ -8,32 +8,35 @@ if (!supabaseUrl) {
   throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL');
 }
 
-if (!supabaseAccessToken && !supabaseAnonKey) {
-  throw new Error('Missing both NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+if (!supabaseAccessToken) {
+  console.warn('NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN is recommended for full functionality');
+  if (!supabaseAnonKey) {
+    throw new Error('Missing both NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
 }
 
 // Use access token as primary auth method if available
-const primaryKey = supabaseAccessToken || supabaseAnonKey;
+const primaryKey = supabaseAccessToken || supabaseAnonKey || 'fallback-key';
+
+// Create client with access token priority
+const clientOptions = {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  },
+  global: {
+    headers: supabaseAccessToken ? {
+      'Authorization': `Bearer ${supabaseAccessToken}`,
+      'apikey': supabaseAccessToken
+    } : {}
+  }
+};
 
 // Regular client for general operations  
-export const supabase = createClient(supabaseUrl, primaryKey, {
-  auth: {
-    autoRefreshToken: !supabaseAccessToken,
-    persistSession: !supabaseAccessToken
-  }
-});
+export const supabase = createClient(supabaseUrl, primaryKey, clientOptions);
 
-// Admin client with service role for storage operations
-export const supabaseAdmin = createClient(
-  supabaseUrl, 
-  supabaseAccessToken || supabaseAnonKey,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+// Admin client with service role for storage operations (same as regular for now)
+export const supabaseAdmin = supabase;
 
 // Storage bucket name
 export const STORAGE_BUCKET = 'shortformai';
@@ -53,6 +56,10 @@ export async function uploadFile(
   folder: string = 'uploads'
 ): Promise<UploadResult> {
   try {
+    // Check if we have proper authentication
+    if (!supabaseAccessToken && !supabaseAnonKey) {
+      return { error: 'No authentication token available' };
+    }
     // Generate unique filename with timestamp
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 8);
@@ -69,8 +76,8 @@ export async function uploadFile(
       });
 
     if (error) {
-      console.error('Upload error:', error);
-      return { error: `Upload failed: ${error.message}` };
+      console.error('Supabase upload error:', error);
+      return { error: `Upload failed: ${error.message || JSON.stringify(error)}` };
     }
 
     // Get public URL
@@ -86,9 +93,9 @@ export async function uploadFile(
       }
     };
   } catch (error) {
-    console.error('Upload error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown upload error';
-    return { error: `Upload failed: ${errorMessage}` };
+    console.error('Upload exception:', error);
+    const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+    return { error: `Upload exception: ${errorMessage}` };
   }
 }
 
