@@ -80,10 +80,17 @@ export interface IQuote {
 }
 
 export interface IQuoteItem {
+  id?: string; // Optional for new items
   productId: string;
+  productName?: string; // Cached for display
+  productModel?: string; // Cached for display
   rentalPlanId: string;
+  rentalPlanName?: string; // Cached for display
+  monthlyFee?: number; // Cached for calculation
+  installationFee?: number; // Cached for calculation
+  contractPeriod?: number; // Cached for display
   quantity: number;
-  customOptions?: Record<string, any>;
+  customOptions?: Record<string, unknown>;
 }
 
 // 계약 타입

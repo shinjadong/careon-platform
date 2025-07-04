@@ -284,7 +284,7 @@ export default function NewQuotePage() {
               ) : (
                 <div className="space-y-4">
                   {items.map((item) => (
-                    <div key={item.id} className="border-b pb-4 last:border-b-0">
+                    <div key={item.id || `${item.productId}-${item.rentalPlanId}`} className="border-b pb-4 last:border-b-0">
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
                           <h4 className="font-medium text-sm">{item.productName}</h4>
@@ -325,10 +325,10 @@ export default function NewQuotePage() {
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-medium">
-                            월 {formatCurrency(item.monthlyFee * item.quantity)}
+                            월 {formatCurrency((item.monthlyFee || 0) * item.quantity)}
                           </p>
                           <p className="text-xs text-gray-600">
-                            설치비 {formatCurrency(item.installationFee * item.quantity)}
+                            설치비 {formatCurrency((item.installationFee || 0) * item.quantity)}
                           </p>
                         </div>
                       </div>

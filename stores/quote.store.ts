@@ -52,10 +52,10 @@ export const useQuoteStore = create<IQuoteStore>((set, get) => ({
           productName: product.name,
           productModel: product.model,
           rentalPlanId: selectedPlan.id,
-          rentalPlanName: selectedPlan.name,
+          rentalPlanName: `플랜 ${selectedPlan.id} - ${selectedPlan.duration}개월`,
           monthlyFee: selectedPlan.monthlyFee,
           installationFee: selectedPlan.installationFee,
-          contractPeriod: selectedPlan.contractPeriod,
+          contractPeriod: selectedPlan.duration,
           quantity: 1,
         };
         
