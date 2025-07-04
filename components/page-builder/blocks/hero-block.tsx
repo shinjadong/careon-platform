@@ -155,7 +155,7 @@ export function HeroBlockRenderer({ block, isEditing, onUpdate }: HeroBlockRende
             {heroData.buttons.map((button, index) => (
               <Button
                 key={index}
-                variant={button.variant || 'primary'}
+                variant={button.variant || 'default'}
                 size={button.size || 'lg'}
                 onClick={() => !isEditing && window.open(button.link, '_blank')}
               >

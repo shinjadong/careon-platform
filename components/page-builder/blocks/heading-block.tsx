@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { HeadingBlock } from '@/types/page-builder';
 
 interface HeadingBlockRendererProps {
@@ -24,7 +24,7 @@ export function HeadingBlockRenderer({ block, isEditing, onUpdate }: HeadingBloc
     setIsEditingText(false);
   };
 
-  const HeadingTag = `h${block.content.level}` as keyof JSX.IntrinsicElements;
+  const HeadingTag = `h${block.content.level}` as keyof React.JSX.IntrinsicElements;
 
   if (isEditing && isEditingText) {
     return (

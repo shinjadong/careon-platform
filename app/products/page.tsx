@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { IProduct } from '@/types';
 import { Button } from '@/components/ui/button';
 
@@ -140,7 +141,7 @@ export default function ProductsPage() {
             {categories.map((category) => (
               <Button
                 key={category.id}
-                variant={selectedCategory === category.id ? 'primary' : 'outline'}
+                variant={selectedCategory === category.id ? 'default' : 'outline'}
                 onClick={() => setSelectedCategory(category.id)}
               >
                 {category.name}
@@ -159,9 +160,11 @@ export default function ProductsPage() {
               {/* 상품 이미지 */}
               <div className="aspect-w-16 aspect-h-9 bg-gray-200">
                 {product.images.find(img => img.isMain) && (
-                  <img
-                    src={product.images.find(img => img.isMain)?.url}
-                    alt={product.images.find(img => img.isMain)?.alt}
+                  <Image
+                    src={product.images.find(img => img.isMain)?.url || '/images/placeholder.jpg'}
+                    alt={product.images.find(img => img.isMain)?.alt || product.name}
+                    width={400}
+                    height={300}
                     className="w-full h-48 object-cover"
                   />
                 )}
@@ -220,7 +223,7 @@ export default function ProductsPage() {
                   <Button variant="outline" className="flex-1">
                     상세보기
                   </Button>
-                  <Button variant="primary" className="flex-1">
+                  <Button variant="default" className="flex-1">
                     견적요청
                   </Button>
                 </div>

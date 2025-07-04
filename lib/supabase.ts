@@ -28,7 +28,7 @@ const clientOptions = {
     headers: supabaseAccessToken ? {
       'Authorization': `Bearer ${supabaseAccessToken}`,
       'apikey': supabaseAccessToken
-    } : {}
+    } : undefined
   }
 };
 
@@ -39,8 +39,8 @@ export const supabase = createClient(supabaseUrl, primaryKey, clientOptions);
 export const supabaseAdmin = supabase;
 
 // Storage bucket name
-export const STORAGE_BUCKET = 'shortformai';
-export const CAREON_FOLDER = 'careon';
+export const STORAGE_BUCKET = 'careon';
+export const CAREON_FOLDER = 'uploads';
 
 export interface UploadResult {
   data?: {
@@ -76,8 +76,14 @@ export async function uploadFile(
       });
 
     if (error) {
-      console.error('Supabase upload error:', error);
-      return { error: `Upload failed: ${error.message || JSON.stringify(error)}` };
+      console.error('Supabase upload error details:', {
+        error: error,
+        message: error.message,
+        details: error.details || 'No details available',
+        hint: error.hint || 'No hint available',
+        code: error.code || 'No code available'
+      });
+      return { error: `Upload failed: ${error.message || error.details || JSON.stringify(error)}` };
     }
 
     // Get public URL

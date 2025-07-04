@@ -16,7 +16,7 @@ export default function LandingPage() {
         overlay: true,
         overlayOpacity: 0.6,
         buttons: [
-          { text: "무료 견적 받기", link: "#contact-form", variant: "primary", size: "lg" },
+          { text: "무료 견적 받기", link: "#contact-form", variant: "default", size: "lg" },
           { text: "상품 카탈로그 보기", link: "#products", variant: "outline", size: "lg" }
         ]
       },

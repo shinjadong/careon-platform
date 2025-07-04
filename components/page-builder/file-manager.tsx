@@ -41,8 +41,8 @@ export function FileManager({ isOpen, onClose, onSelectFile, fileType = 'all' }:
           const filesWithMetadata = data.map(file => ({
             ...file,
             type: getFileType(file.name),
-            size: file.metadata?.size || 0,
-            publicUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/shortformai/careon/${folder}/${file.name}`
+            size: typeof file.metadata?.size === 'number' ? file.metadata.size : 0,
+            publicUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/careon/uploads/${folder}/${file.name}`
           }));
           allFiles.push(...filesWithMetadata);
         }

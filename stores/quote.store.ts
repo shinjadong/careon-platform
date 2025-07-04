@@ -111,11 +111,11 @@ export const useQuoteStore = create<IQuoteStore>((set, get) => ({
   calculateTotal: () => {
     const { items } = get();
     const totalMonthlyFee = items.reduce(
-      (sum, item) => sum + (item.monthlyFee * item.quantity),
+      (sum, item) => sum + ((item.monthlyFee || 0) * item.quantity),
       0
     );
     const totalInstallationFee = items.reduce(
-      (sum, item) => sum + (item.installationFee * item.quantity),
+      (sum, item) => sum + ((item.installationFee || 0) * item.quantity),
       0
     );
     

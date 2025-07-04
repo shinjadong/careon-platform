@@ -23,7 +23,7 @@ export function BlockRenderer({
   onUpdate, 
   onDelete 
 }: BlockRendererProps) {
-  const renderBlock = () => {
+  const renderBlock = (block: Block) => {
     switch (block.type) {
       case 'heading':
         return <HeadingBlockRenderer block={block} isEditing={isEditing} onUpdate={onUpdate} />;
@@ -71,7 +71,7 @@ export function BlockRenderer({
           </button>
         </div>
       )}
-      {renderBlock()}
+      {renderBlock(block)}
     </div>
   );
 }

@@ -50,11 +50,11 @@ export function ButtonBlockRenderer({ block, isEditing, onUpdate }: ButtonBlockR
           <div>
             <label className="block text-sm font-medium mb-2">스타일</label>
             <select
-              value={buttonData.variant || 'primary'}
-              onChange={(e) => setButtonData({ ...buttonData, variant: e.target.value as 'primary' | 'secondary' | 'outline' | 'ghost' })}
+              value={buttonData.variant || 'default'}
+              onChange={(e) => setButtonData({ ...buttonData, variant: e.target.value as 'default' | 'secondary' | 'outline' | 'ghost' })}
               className="w-full px-3 py-2 border rounded"
             >
-              <option value="primary">Primary</option>
+              <option value="default">Default (Primary)</option>
               <option value="secondary">Secondary</option>
               <option value="outline">Outline</option>
               <option value="ghost">Ghost</option>
@@ -63,12 +63,12 @@ export function ButtonBlockRenderer({ block, isEditing, onUpdate }: ButtonBlockR
           <div>
             <label className="block text-sm font-medium mb-2">크기</label>
             <select
-              value={buttonData.size || 'md'}
-              onChange={(e) => setButtonData({ ...buttonData, size: e.target.value as 'sm' | 'md' | 'lg' })}
+              value={buttonData.size || 'default'}
+              onChange={(e) => setButtonData({ ...buttonData, size: e.target.value as 'default' | 'sm' | 'lg' })}
               className="w-full px-3 py-2 border rounded"
             >
               <option value="sm">Small</option>
-              <option value="md">Medium</option>
+              <option value="default">Medium (Default)</option>
               <option value="lg">Large</option>
             </select>
           </div>
@@ -101,8 +101,8 @@ export function ButtonBlockRenderer({ block, isEditing, onUpdate }: ButtonBlockR
       onClick={() => isEditing && setIsEditingButton(true)}
     >
       <Button
-        variant={block.content.variant || 'primary'}
-        size={block.content.size || 'md'}
+        variant={block.content.variant || 'default'}
+        size={block.content.size || 'default'}
         onClick={() => !isEditing && window.open(block.content.link, '_blank')}
         className="pointer-events-none"
       >

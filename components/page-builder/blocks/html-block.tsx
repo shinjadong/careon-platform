@@ -1,14 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Block } from '@/types/page-builder';
-
-interface HTMLBlock extends Block {
-  type: 'html';
-  content: {
-    html: string;
-  };
-}
+import { HTMLBlock } from '@/types/page-builder';
 
 interface HTMLBlockRendererProps {
   block: HTMLBlock;

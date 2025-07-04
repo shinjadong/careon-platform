@@ -132,6 +132,15 @@ export function VideoBlockRenderer({ block, isEditing, onUpdate }: VideoBlockRen
     setVideoError(null);
   };
 
+  const renderVideoPreview = () => {
+    return (
+      <div className="flex flex-col items-center justify-center text-gray-500">
+        <Play className="w-12 h-12 mb-2" />
+        <span className="text-sm">미리보기는 저장 후 확인 가능</span>
+      </div>
+    );
+  };
+
   if (isEditing && isEditingVideo) {
     return (
       <div className="space-y-6 p-6 border-2 border-blue-200 rounded-lg bg-blue-50/50">
@@ -302,15 +311,6 @@ export function VideoBlockRenderer({ block, isEditing, onUpdate }: VideoBlockRen
       </div>
     );
   }
-
-  const renderVideoPreview = () => {
-    return (
-      <div className="flex flex-col items-center justify-center text-gray-500">
-        <Play className="w-12 h-12 mb-2" />
-        <span className="text-sm">미리보기는 저장 후 확인 가능</span>
-      </div>
-    );
-  };
 
   const renderVideo = () => {
     if (!block.content.src) {

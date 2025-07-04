@@ -1,14 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Block } from '@/types/page-builder';
-
-interface SpacerBlock extends Block {
-  type: 'spacer';
-  content: {
-    height: number;
-  };
-}
+import { SpacerBlock } from '@/types/page-builder';
 
 interface SpacerBlockRendererProps {
   block: SpacerBlock;

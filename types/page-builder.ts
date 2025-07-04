@@ -7,15 +7,12 @@ export type BlockType =
   | 'spacer'
   | 'columns'
   | 'hero'
-  | 'features'
-  | 'testimonial'
-  | 'cta'
   | 'html';
 
-export interface Block {
+// The base interface for all blocks, without the problematic `content: any`
+export interface BaseBlock {
   id: string;
   type: BlockType;
-  content: any;
   settings?: BlockSettings;
 }
 
@@ -38,7 +35,8 @@ export interface BlockSettings {
   width?: 'full' | 'wide' | 'narrow';
 }
 
-export interface HeadingBlock extends Block {
+// Specific block types extending the BaseBlock
+export interface HeadingBlock extends BaseBlock {
   type: 'heading';
   content: {
     text: string;
@@ -46,7 +44,7 @@ export interface HeadingBlock extends Block {
   };
 }
 
-export interface TextBlock extends Block {
+export interface TextBlock extends BaseBlock {
   type: 'text';
   content: {
     text: string;
@@ -54,7 +52,7 @@ export interface TextBlock extends Block {
   };
 }
 
-export interface ImageBlock extends Block {
+export interface ImageBlock extends BaseBlock {
   type: 'image';
   content: {
     src: string;
@@ -67,7 +65,7 @@ export interface ImageBlock extends Block {
   };
 }
 
-export interface VideoBlock extends Block {
+export interface VideoBlock extends BaseBlock {
   type: 'video';
   content: {
     src: string;
@@ -79,18 +77,26 @@ export interface VideoBlock extends Block {
   };
 }
 
-export interface ButtonBlock extends Block {
+export interface ButtonBlock extends BaseBlock {
   type: 'button';
   content: {
     text: string;
     link: string;
-    variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-    size?: 'sm' | 'md' | 'lg';
+    variant?: 'default' | 'secondary' | 'outline' | 'ghost';
+    size?: 'default' | 'sm' | 'lg';
     icon?: string;
   };
 }
 
-export interface ColumnsBlock extends Block {
+// Added based on renderer usage
+export interface SpacerBlock extends BaseBlock {
+  type: 'spacer';
+  content: {
+    height: number;
+  };
+}
+
+export interface ColumnsBlock extends BaseBlock {
   type: 'columns';
   content: {
     columns: Block[][];
@@ -98,7 +104,7 @@ export interface ColumnsBlock extends Block {
   };
 }
 
-export interface HeroBlock extends Block {
+export interface HeroBlock extends BaseBlock {
   type: 'hero';
   content: {
     title: string;
@@ -111,6 +117,29 @@ export interface HeroBlock extends Block {
   };
 }
 
+// Added based on renderer usage
+export interface HTMLBlock extends BaseBlock {
+  type: 'html';
+  content: {
+    html: string;
+  };
+}
+
+// The new discriminated union Block type
+export type Block = 
+  | HeadingBlock
+  | TextBlock
+  | ImageBlock
+  | VideoBlock
+  | ButtonBlock
+  | SpacerBlock
+  | ColumnsBlock
+  | HeroBlock
+  | HTMLBlock
+  | HTMLBlock;
+
+
+// Page related types remain the same, but will now use the correct Block union type
 export interface Page {
   id: string;
   title: string;

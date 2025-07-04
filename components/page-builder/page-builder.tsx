@@ -17,7 +17,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Block, BlockType } from '@/types/page-builder';
+import { Block, BlockType, HeadingBlock, TextBlock, ImageBlock, VideoBlock, ButtonBlock, SpacerBlock, ColumnsBlock, HeroBlock, HTMLBlock } from '@/types/page-builder';
 import { BlockRenderer } from './block-renderer';
 import { Button } from '@/components/ui/button';
 import { Plus, Eye, Edit, Save, Download, Upload, FolderOpen } from 'lucide-react';
@@ -111,31 +111,33 @@ export function PageBuilder({ initialBlocks = [], onSave }: PageBuilderProps) {
   };
 
   const addBlock = (type: BlockType) => {
-    const newBlock: Block = {
+    const newBlock = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
       content: getDefaultContent(type),
-    };
+    } as Block;
 
     setBlocks([...blocks, newBlock]);
   };
 
-  const getDefaultContent = (type: BlockType) => {
+  const getDefaultContent = (type: BlockType): HeadingBlock['content'] | TextBlock['content'] | ImageBlock['content'] | VideoBlock['content'] | ButtonBlock['content'] | SpacerBlock['content'] | ColumnsBlock['content'] | HeroBlock['content'] | HTMLBlock['content'] | Record<string, unknown> => {
     switch (type) {
       case 'heading':
-        return { text: '새 제목', level: 1 };
+        return { text: '새 제목', level: 1 as const };
       case 'text':
-        return { text: '새 텍스트를 입력하세요...', format: 'plain' };
+        return { text: '새 텍스트를 입력하세요...', format: 'plain' as const };
       case 'image':
         return { src: '', alt: '새 이미지' };
       case 'video':
-        return { src: '', type: 'youtube' };
+        return { src: '', type: 'youtube' as const };
       case 'button':
         return { text: '버튼', link: '#' };
       case 'spacer':
         return { height: 50 };
       case 'hero':
         return { title: '새 히어로 섹션', subtitle: '부제목을 입력하세요' };
+      case 'columns':
+        return { columns: [{ content: '첫 번째 열' }, { content: '두 번째 열' }] };
       case 'html':
         return { html: '<p>HTML 코드를 입력하세요</p>' };
       default:
@@ -207,7 +209,7 @@ export function PageBuilder({ initialBlocks = [], onSave }: PageBuilderProps) {
             <h1 className="text-2xl font-bold text-gray-900">페이지 빌더</h1>
             <div className="flex items-center space-x-2">
               <Button
-                variant={isEditing ? 'primary' : 'outline'}
+                variant={isEditing ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setIsEditing(!isEditing)}
               >
@@ -250,7 +252,7 @@ export function PageBuilder({ initialBlocks = [], onSave }: PageBuilderProps) {
               파일 관리
             </Button>
             <Button
-              variant="primary"
+              variant="default"
               size="sm"
               onClick={handleSave}
             >
