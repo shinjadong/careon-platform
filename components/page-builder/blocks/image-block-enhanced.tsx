@@ -229,7 +229,7 @@ export function ImageBlockRendererEnhanced({ block, isEditing, onUpdate }: Image
                     height={imageData.height || 300}
                     style={{ objectFit: imageData.objectFit || 'contain' }}
                     className="rounded"
-                    unoptimized={imageData.src.startsWith('data:')}
+                    unoptimized={true}
                     onError={() => setImageError(true)}
                   />
                 </div>
@@ -371,7 +371,8 @@ export function ImageBlockRendererEnhanced({ block, isEditing, onUpdate }: Image
           height={block.content.height || 600}
           style={{ objectFit: block.content.objectFit }}
           className="max-w-full h-auto rounded-lg shadow-sm"
-          unoptimized={block.content.src.startsWith('data:')}
+          unoptimized={true}
+          priority={true}
           onLoad={() => setIsLoading(false)}
           onError={() => {
             setImageError(true);
