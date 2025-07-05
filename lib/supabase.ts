@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
+// 환경변수에서 가져오기 (프로덕션 환경에서는 필수)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';

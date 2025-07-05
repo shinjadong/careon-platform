@@ -213,19 +213,44 @@ careon-platform/
 ## 🌍 배포 및 운영
 
 ### 환경 변수 설정
+
+`.env.local` 파일 생성:
+
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://bvhfjfpsedkfqvmxwvfr.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+
+# Service Role Key (서버사이드에서만 사용)
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 
 # 기타 설정
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
+⚠️ **중요**: Service Role Key는 절대 클라이언트에 노출되면 안 됩니다!
+
 ### 배포 방법
-1. Vercel을 통한 자동 배포
-2. GitHub Actions을 통한 CI/CD
-3. Docker를 통한 컨테이너 배포
+
+#### Vercel을 통한 자동 배포
+```bash
+# Vercel CLI 설치
+npm i -g vercel
+
+# 프로젝트 연결
+vercel link
+
+# 프로덕션 배포
+vercel --prod
+```
+
+자세한 배포 가이드는 [DEPLOYMENT.md](DEPLOYMENT.md) 참조
+
+#### GitHub Actions을 통한 CI/CD
+- `.github/workflows/` 디렉토리에 워크플로우 설정
+
+#### Docker를 통한 컨테이너 배포
+- Dockerfile 및 docker-compose.yml 설정 예정
 
 ## 🤝 기여하기
 

@@ -1,27 +1,17 @@
 'use client';
 
+import { useState, useEffect } from "react";
 import { PageBuilder } from "@/components/page-builder/page-builder";
 import { Block } from "@/types/page-builder";
+import { IPageResponse } from "@/types";
 
 // 관리자용 랜딩 페이지 편집기
 export default function LandingEditPage() {
-  // 저장 함수 정의
-  const handleSave = (blocks: Block[]) => {
-    try {
-      // localStorage에 블록 데이터 저장
-      localStorage.setItem('landingPageBlocks', JSON.stringify(blocks));
-      console.log('페이지 저장 완료:', blocks.length, '개 블록');
-      
-      // 사용자에게 알림
-      alert('페이지가 성공적으로 저장되었습니다!');
-    } catch (error) {
-      console.error('페이지 저장 실패:', error);
-      alert('페이지 저장에 실패했습니다.');
-    }
-  };
+  const [initialBlocks, setInitialBlocks] = useState<Block[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // 기존 랜딩 페이지 내용을 블록 형태로 변환
-  const initialBlocks: Block[] = [
+  // 기본 블록 데이터
+  const defaultBlocks: Block[] = [
     {
       id: "hero-1",
       type: "hero",
@@ -275,6 +265,87 @@ export default function LandingEditPage() {
     }
   ];
 
+  // 컴포넌트 마운트 시 기존 페이지 데이터 불러오기
+  useEffect(() => {
+    const loadPageData = async () => {
+      try {
+        const response = await fetch('/api/pages/landing');
+        if (response.ok) {
+          const result: IPageResponse = await response.json();
+          if (result.success && result.data && result.data.blocks.length > 0) {
+            console.log('서버에서 페이지 데이터 불러오기 성공:', result.data.blocks.length, '개 블록');
+            setInitialBlocks(result.data.blocks);
+          } else {
+            console.log('서버에 페이지 데이터 없음, 기본 블록 사용');
+            setInitialBlocks(defaultBlocks);
+          }
+        } else {
+          console.log('페이지 데이터 조회 실패, 기본 블록 사용');
+          setInitialBlocks(defaultBlocks);
+        }
+      } catch (error) {
+        console.error('페이지 데이터 불러오기 중 오류:', error);
+        setInitialBlocks(defaultBlocks);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPageData();
+  }, []);
+
+  // 페이지 저장 핸들러
+  const handleSave = async (blocks: Block[]) => {
+    try {
+      console.log('페이지 저장 시작:', blocks.length, '개 블록');
+      
+      // API 엔드포인트 호출
+      const response = await fetch('/api/pages/landing', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: '케어온 랜딩 페이지',
+          blocks: blocks,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('서버 응답 에러:', errorText);
+        throw new Error(`서버 오류: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('서버 응답:', result);
+      
+      // localStorage에도 저장 (백업)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('landingPageData', JSON.stringify(blocks));
+      }
+      
+      // 저장 성공 메시지
+      console.log('페이지 저장 완료:', blocks.length, '개 블록');
+      alert('페이지가 성공적으로 저장되었습니다!');
+      
+    } catch (error) {
+      console.error('페이지 저장 실패:', error);
+      alert('페이지 저장에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">페이지 데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* 편집자 헤더 */}
@@ -289,7 +360,9 @@ export default function LandingEditPage() {
             >
               실제 페이지 보기 →
             </a>
-            <span className="text-sm text-gray-500">편집한 내용은 자동 저장됩니다</span>
+            <span className="text-sm text-gray-500">
+              편집 후 저장하면 실제 웹사이트에 바로 반영됩니다
+            </span>
           </div>
         </div>
       </div>

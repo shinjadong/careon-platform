@@ -123,4 +123,28 @@ export interface IPartner {
   certifications: string[];
   rating: number;
   reviewCount: number;
+}
+
+// Page model for database
+export interface IPage {
+  id: string;
+  slug: string;
+  title: string;
+  blocks: Block[];
+  status: 'draft' | 'published';
+  created_at: string;
+  updated_at: string;
+}
+
+// API response types
+export interface IPageResponse {
+  success: boolean;
+  data?: IPage;
+  error?: string;
+}
+
+export interface IPageUpdateRequest {
+  title?: string;
+  blocks?: Block[];
+  status?: 'draft' | 'published';
 } 
