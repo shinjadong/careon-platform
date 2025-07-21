@@ -346,15 +346,22 @@ const CCTVRentalQuote = () => {
       
       // ✨ 수량 선택 단계인 경우 특별 처리
       if (step.quantitySelection) {
+        console.log('🎯 수량 선택 단계 진입');
         const locations = formData.installationLocations || [];
         const filteredLocations = locations.filter(loc => loc !== '📱 기타위치');
         
+        console.log('📍 필터링된 위치들:', filteredLocations);
+        
         if (filteredLocations.length > 0) {
-          setQuantitySelection({
+          // quantitySelection 상태 초기화 보장
+          const newQuantitySelection = {
             currentLocationIndex: 0,
             selectedQuantities: {},
             locations: filteredLocations
-          });
+          };
+          
+          console.log('🔧 quantitySelection 초기화:', newQuantitySelection);
+          setQuantitySelection(newQuantitySelection);
           
           const firstLocation = filteredLocations[0];
           const question = `${firstLocation}에 몇 대의 CCTV를 설치하시겠어요?`;
@@ -420,49 +427,8 @@ const CCTVRentalQuote = () => {
         setSelectedMultiples([]);
         
         setTimeout(() => {
-          console.log('🚀 installationLocations 다음 단계 이동, 업데이트된 formData:', updatedFormData);
-          // 업데이트된 formData를 직접 전달 (현재 단계 번호 사용)
-          const nextStep = findNextValidStep(currentStep, updatedFormData);
-          if (nextStep < FORM_STEPS.length) {
-            const step = FORM_STEPS[nextStep];
-            
-            console.log('🎯 다음 단계 확인:', { nextStep, field: step.field, quantitySelection: step.quantitySelection });
-            
-            // ✨ 수량 선택 단계인 경우 특별 처리
-            if (step.quantitySelection) {
-              console.log('🔥 수량 선택 단계 진입!');
-              const locations = updatedFormData.installationLocations || [];
-              const filteredLocations = locations.filter(loc => loc !== '📱 기타위치');
-              
-              if (filteredLocations.length > 0) {
-                setQuantitySelection({
-                  currentLocationIndex: 0,
-                  selectedQuantities: {},
-                  locations: filteredLocations
-                });
-                
-                const firstLocation = filteredLocations[0];
-                const question = `${firstLocation}에 몇 대의 CCTV를 설치하시겠어요?`;
-                
-                addMessage('system', question, step.options || [], step.field);
-                setCurrentStep(nextStep);
-                setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
-                return;
-              }
-            }
-            
-            // 일반 단계 처리
-            let options = step.options || [];
-            if (step.dynamic && step.field) {
-              options = generateDynamicOptions(step.field, updatedFormData);
-            }
-            
-            addMessage('system', step.question, options, step.field);
-            setCurrentStep(nextStep);
-            setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
-          } else {
-            handleSubmit();
-          }
+          console.log('🚀 installationLocations 다음 단계 이동');
+          goToNextStep();
         }, 500);
       }
     }
@@ -471,12 +437,31 @@ const CCTVRentalQuote = () => {
   // ✨ 수량 선택 처리 함수
   const handleQuantitySelect = (quantity: string) => {
     console.log('🔥 handleQuantitySelect 호출됨:', quantity);
-    console.log('현재 quantitySelection 상태:', quantitySelection);
+    console.log('현재 quantitySelection 상태:', JSON.stringify(quantitySelection, null, 2));
     console.log('현재 formData.installationLocations:', formData.installationLocations);
     
-    // ✨ quantitySelection.locations 사용으로 상태 동기화 문제 해결
-    const filteredLocations = quantitySelection.locations;
+    // locations가 비어있으면 formData에서 다시 가져오기
+    let filteredLocations = quantitySelection.locations;
+    if (!filteredLocations || filteredLocations.length === 0) {
+      console.log('⚠️ quantitySelection.locations가 비어있음, formData에서 복구 시도');
+      const locations = formData.installationLocations || [];
+      filteredLocations = locations.filter(loc => loc !== '📱 기타위치');
+      
+      // quantitySelection 상태 복구
+      setQuantitySelection(prev => ({
+        ...prev,
+        locations: filteredLocations
+      }));
+    }
+    
     const currentLocation = filteredLocations[quantitySelection.currentLocationIndex];
+    
+    if (!currentLocation) {
+      console.error('❌ currentLocation이 undefined입니다!');
+      console.log('filteredLocations:', filteredLocations);
+      console.log('currentLocationIndex:', quantitySelection.currentLocationIndex);
+      return;
+    }
     
     console.log('filteredLocations:', filteredLocations);
     console.log('currentLocation:', currentLocation);

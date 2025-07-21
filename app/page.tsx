@@ -104,15 +104,16 @@ export default function HomePage() {
             
             <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
               {[
-                { name: '키오스크', description: '주문부터 결제까지 스마트하게' },
-                { name: 'POS 시스템', description: '매장 운영의 핵심 솔루션' },
-                { name: 'CCTV', description: '안전한 매장 운영을 위한 필수품' },
-                { name: '주방기기', description: '효율적인 주방 운영 시스템' },
-                { name: '인테리어', description: '고객을 사로잡는 공간 연출' },
-                { name: '기타 장비', description: '성공적인 창업을 위한 모든 것' },
+                { name: '키오스크', description: '주문부터 결제까지 스마트하게', href: '/products/kiosk' },
+                { name: 'POS 시스템', description: '매장 운영의 핵심 솔루션', href: '/products/pos' },
+                { name: 'CCTV', description: '안전한 매장 운영을 위한 필수품', href: '/products/cctv' },
+                { name: '주방기기', description: '효율적인 주방 운영 시스템', href: '/products/kitchen' },
+                { name: '인테리어', description: '고객을 사로잡는 공간 연출', href: '/products/interior' },
+                { name: '기타 장비', description: '성공적인 창업을 위한 모든 것', href: '/products' },
               ].map((category) => (
-                <div
+                <a
                   key={category.name}
+                  href={category.href}
                   className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
                 >
                   <div>
@@ -126,7 +127,7 @@ export default function HomePage() {
                   <p className="mt-6 text-sm font-semibold leading-6 text-primary">
                     자세히 보기 <span aria-hidden="true">→</span>
                   </p>
-                </div>
+                </a>
               ))}
             </div>
           </div>

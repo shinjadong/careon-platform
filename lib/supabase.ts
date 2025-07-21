@@ -1,175 +1,139 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 환경변수에서 가져오기 (프로덕션 환경에서는 필수)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+// Supabase 프로젝트 정보 - 새 careon-platform 프로젝트
+const supabaseUrl = 'https://clbutkcmgxfetdcceoaa.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsYnV0a2NtZ3hmZXRkY2Nlb2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxMzM5ODksImV4cCI6MjA2NzcwOTk4OX0.ueDigeMvdez2-PQD5X_nVwE4BiX8QZI1eRsiDtaZUWM';
 
-if (!supabaseUrl) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL');
-}
-
-if (!supabaseAnonKey) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
-}
-
-// Regular client for general operations  
+// 클라이언트용 Supabase 인스턴스
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Admin client with service role for storage operations
-export const supabaseAdmin = supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : supabase; // Fallback to regular client if no service key
+// 관리자용 Supabase 인스턴스 (Service Role Key 필요시)
+export const supabaseAdmin = createClient(
+  supabaseUrl,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey
+);
 
-// Storage bucket name
-export const STORAGE_BUCKET = 'careon';
-
-
-
+// 파일 업로드 결과 인터페이스
 export interface UploadResult {
-  data?: {
-    path: string;
-    fullPath: string;
-    publicUrl: string;
-  };
+  success: boolean;
+  url?: string;
   error?: string;
+  path?: string;
 }
 
-export async function uploadFile(
-  file: File,
-  folder: string = 'general'
-): Promise<UploadResult> {
+/**
+ * 파일 업로드 함수
+ * @param file - 업로드할 파일
+ * @param folder - 저장할 폴더 (기본: uploads)
+ * @returns 업로드 결과
+ */
+export async function uploadFile(file: File, folder: string = 'uploads'): Promise<UploadResult> {
   try {
-    console.log('Starting file upload:', {
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      folder: folder
-    });
-
-    // Skip bucket creation and proceed directly to upload
-    // The bucket should be manually created in Supabase Dashboard
-
-    // Generate unique filename with timestamp
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 8);
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `${timestamp}_${randomString}.${fileExtension}`;
+    // 파일명을 안전하게 변환 (한글, 특수문자 등 처리)
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
-    console.log('Uploading to path:', filePath);
-
-    // Use regular client for uploads (less restrictive)
-    const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKET)
+    // Storage에 파일 업로드
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('files')
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
       });
 
-    if (error) {
-      console.error('Supabase upload error:', {
-        message: error.message,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        details: (error as any).details || 'No details available',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        hint: (error as any).hint || 'No hint available',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        statusCode: (error as any).statusCode
-      });
-      
-      return { error: `Upload failed: ${error.message}` };
+    if (uploadError) {
+      console.error('업로드 에러:', uploadError);
+      return {
+        success: false,
+        error: uploadError.message
+      };
     }
 
-    console.log('Upload successful:', data);
-
-    // Get public URL
+    // Public URL 생성
     const { data: urlData } = supabase.storage
-      .from(STORAGE_BUCKET)
+      .from('files')
       .getPublicUrl(filePath);
 
-    console.log('Public URL generated:', urlData.publicUrl);
-
     return {
-      data: {
-        path: data.path,
-        fullPath: filePath,
-        publicUrl: urlData.publicUrl
-      }
+      success: true,
+      url: urlData.publicUrl,
+      path: filePath
     };
-  } catch (error) {
-    console.error('Upload exception:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown upload error';
-    return { error: `Upload exception: ${errorMessage}` };
+
+  } catch (error: any) {
+    console.error('파일 업로드 중 에러:', error);
+    return {
+      success: false,
+      error: error.message || '알 수 없는 오류가 발생했습니다.'
+    };
   }
 }
 
-export async function deleteFile(filePath: string): Promise<{ error?: string }> {
+/**
+ * 파일 목록 조회
+ * @param folder - 조회할 폴더 (기본: uploads)
+ * @returns 파일 목록
+ */
+export async function listFiles(folder: string = 'uploads') {
   try {
-    const { error } = await supabaseAdmin.storage
-      .from(STORAGE_BUCKET)
-      .remove([filePath]);
-
-    if (error) {
-      return { error: error.message };
-    }
-
-    return {};
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Delete failed' };
-  }
-}
-
-export async function listFiles(folder: string = ''): Promise<{
-  data?: Array<{ name: string; id: string; updated_at: string; metadata: Record<string, unknown> }>;
-  error?: string;
-}> {
-  try {
-    const path = folder || '';
-    
-    const { data, error } = await supabaseAdmin.storage
-      .from(STORAGE_BUCKET)
-      .list(path, {
+    const { data, error } = await supabase.storage
+      .from('files')
+      .list(folder, {
         limit: 100,
         offset: 0,
-        sortBy: { column: 'created_at', order: 'desc' }
+        sortBy: { column: 'updated_at', order: 'desc' }
       });
 
     if (error) {
-      return { error: error.message };
+      return { data: null, error };
     }
 
-    return { data };
+    // Public URL 추가
+    const filesWithUrls = data?.map(file => ({
+      ...file,
+      publicUrl: supabase.storage
+        .from('files')
+        .getPublicUrl(`${folder}/${file.name}`).data.publicUrl
+    }));
+
+    return { data: filesWithUrls, error: null };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'List failed' };
+    return { data: null, error };
   }
 }
 
-// Helper function to get file type from extension
-export function getFileType(fileName: string): 'image' | 'video' | 'document' | 'other' {
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')) {
-    return 'image';
+/**
+ * 파일 삭제
+ * @param path - 삭제할 파일 경로
+ * @returns 삭제 결과
+ */
+export async function deleteFile(path: string) {
+  try {
+    const { data, error } = await supabase.storage
+      .from('files')
+      .remove([path]);
+
+    return { data, error };
+  } catch (error) {
+    return { data: null, error };
   }
-  
-  if (['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(extension || '')) {
-    return 'video';
-  }
-  
-  if (['pdf', 'doc', 'docx', 'txt'].includes(extension || '')) {
-    return 'document';
-  }
-  
-  return 'other';
 }
 
-// Helper function to format file size
+/**
+ * 파일 타입 확인
+ * @param fileName - 파일명
+ * @returns 파일 확장자
+ */
+export function getFileType(fileName: string): string {
+  return fileName.split('.').pop()?.toLowerCase() || '';
+}
+
+/**
+ * 파일 크기 포맷팅
+ * @param bytes - 바이트 크기
+ * @returns 포맷된 크기
+ */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
   
@@ -179,3 +143,5 @@ export function formatFileSize(bytes: number): string {
   
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
+
+export default supabase; 
