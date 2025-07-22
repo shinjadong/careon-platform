@@ -265,6 +265,20 @@ const CCTVRentalQuote = () => {
     };
     setMessages(prev => [...prev, newMessage]);
   };
+
+  // ID를 반환하는 메시지 추가 함수
+  const addMessageWithId = (type: MessageType, content: string, options: string[] = [], field?: string): string => {
+    const messageId = nanoid();
+    const newMessage: Message = {
+      id: messageId,
+      type,
+      content,
+      options,
+      field,
+    };
+    setMessages(prev => [...prev, newMessage]);
+    return messageId;
+  };
   
   // 다음 유효한 단계 찾기 (조건부 단계 스킵)
   const findNextValidStep = (currentStep: number, formData: FormData): number => {
@@ -352,17 +366,15 @@ const CCTVRentalQuote = () => {
     }
   };
 
-  // 견적 계산 처리 함수
-  const handleQuoteCalculation = async () => {
+  // 견적 계산 처리 함수 (수량 데이터 전달받음)
+  const handleQuoteCalculationWithData = async (quantityData: {[location: string]: number}) => {
+    console.log('🔍 견적 계산용 전달받은 수량 데이터:', quantityData);
+    
     // 초기 메시지
     addMessage('system', '선택하신 결과를 기반으로 최저가 견적을 내드릴게요.');
     
-    // 현재 formData에서 수량 정보 가져오기
-    const currentQuantities = formData.installationQuantities || {};
-    console.log('🔍 견적 계산용 수량 데이터:', currentQuantities);
-    
     // 총 CCTV 대수 계산
-    const totalCameras = Object.values(currentQuantities).reduce((sum, qty) => sum + qty, 0);
+    const totalCameras = Object.values(quantityData || {}).reduce((sum, qty) => sum + qty, 0);
     const pricePerCamera = 8500;
     const calculatedPrice = totalCameras * pricePerCamera;
     
@@ -377,16 +389,23 @@ const CCTVRentalQuote = () => {
       '✨ 맞춤 견적서 작성 완료!'
     ];
     
+    // 로딩 ID 배열 저장 (나중에 제거하기 위해)
+    const loadingMessageIds: string[] = [];
+    
     // 순차적으로 로딩 메시지 표시
     for (let i = 0; i < loadingMessages.length; i++) {
       await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 500));
-      addMessage('loading', loadingMessages[i]);
+      const messageId = addMessageWithId('loading', loadingMessages[i]);
+      loadingMessageIds.push(messageId);
     }
     
     // 최종 견적 결과 표시
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const locationDetails = Object.entries(currentQuantities)
+    // 로딩 메시지들 제거
+    setMessages(prev => prev.filter(msg => !loadingMessageIds.includes(msg.id)));
+    
+    const locationDetails = Object.entries(quantityData || {})
       .map(([location, qty]) => `${location}: ${qty}대`)
       .join('\n');
     
@@ -412,8 +431,12 @@ ${locationDetails}
 
     addMessage('quote', quoteMessage);
     
-    // FormData에 계산된 가격 저장
-    setFormData(prev => ({ ...prev, calculatedPrice }));
+    // FormData에 계산된 가격과 수량 데이터 저장
+    setFormData(prev => ({ 
+      ...prev, 
+      calculatedPrice,
+      installationQuantities: quantityData
+    }));
     
     // 1초 후 다음 단계로 이동
     setTimeout(() => {
@@ -458,8 +481,8 @@ ${locationDetails}
       
       // 🎯 견적 계산 단계인 경우 특별 처리
       if ((step as any).isQuoteCalculation) {
-        console.log('💰 견적 계산 단계 진입');
-        handleQuoteCalculation();
+        console.log('💰 견적 계산 단계 진입, 수량 데이터:', formData.installationQuantities);
+        handleQuoteCalculationWithData(formData.installationQuantities || {});
         setCurrentStep(nextStep);
         setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
         return;
@@ -611,8 +634,8 @@ ${locationDetails}
             
             // 🎯 견적 계산 단계인 경우 특별 처리
             if ((step as any).isQuoteCalculation) {
-              console.log('💰 견적 계산 단계 진입');
-              handleQuoteCalculation();
+              console.log('💰 견적 계산 단계 진입, 수량 데이터:', updatedFormData.installationQuantities);
+              handleQuoteCalculationWithData(updatedFormData.installationQuantities);
               setCurrentStep(nextStep);
               setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
               return;
@@ -979,8 +1002,8 @@ ${locationDetails}
                                     return;
                                   }
                                 } else if ((step as any).isQuoteCalculation) {
-                                  console.log('💰 견적 계산 단계 진입');
-                                  handleQuoteCalculation();
+                                  console.log('💰 견적 계산 단계 진입, 수량 데이터:', updatedFormData.installationQuantities);
+                                  handleQuoteCalculationWithData(updatedFormData.installationQuantities || {});
                                   setCurrentStep(nextStep);
                                   setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
                                   return;
