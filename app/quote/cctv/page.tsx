@@ -19,10 +19,12 @@ type FormData = {
   contactName?: string;                 // 담당자명  
   phone?: string;                       // 연락처
   agreeTerms?: string[];               // 동의사항들: 개인정보처리방침/마케팅수신
+  finalQuoteMethod?: string;            // 최종 견적 방법: 다이렉트 접수 / 실사 견적
+  calculatedPrice?: number;             // 계산된 견적 가격
 };
 
 // 메시지 타입 정의
-type MessageType = 'system' | 'user' | 'option';
+type MessageType = 'system' | 'user' | 'option' | 'loading' | 'quote';
 
 type Message = {
   id: string;
@@ -30,6 +32,7 @@ type Message = {
   content: string;
   options?: string[];
   field?: string;
+  isTyping?: boolean;  // 타이핑 애니메이션을 위한 플래그
 };
 
 // ✨ 수량 선택 상태 타입 추가
@@ -87,11 +90,21 @@ const FORM_STEPS = [
     quantitySelection: true, // 수량 선택 단계임을 표시
     conditional: (data: FormData) => (data.installationLocations?.length || 0) > 0,
   },
+  // 견적 계산 단계 (특별한 처리가 필요)
   {
-    question: '견적 받으실 방법을 선택해주세요.',
-    field: 'quoteMethod',
-    options: [], // 동적으로 설정됨
-    dynamic: true,
+    question: '', // 동적으로 설정됨
+    field: 'quoteCalculation',
+    isQuoteCalculation: true, // 견적 계산 단계임을 표시
+    conditional: (data: FormData) => !!data.installationQuantities,
+  },
+  {
+    question: '어떤 방식으로 진행하시겠어요?',
+    field: 'finalQuoteMethod',
+    options: [
+      '💻 다이렉트 접수 요청 - 온라인으로 바로 가입',
+      '🏠 상세 실사 견적 요청 - 전문가 방문 (현재 무료 이벤트 중!)'
+    ],
+    conditional: (data: FormData) => !!data.calculatedPrice,
   },
   {
     question: '사업체명을 알려주세요.',
@@ -338,6 +351,69 @@ const CCTVRentalQuote = () => {
     }
   };
 
+  // 견적 계산 처리 함수
+  const handleQuoteCalculation = async () => {
+    // 초기 메시지
+    addMessage('system', '선택하신 결과를 기반으로 최저가 견적을 내드릴게요.');
+    
+    // 총 CCTV 대수 계산
+    const totalCameras = Object.values(formData.installationQuantities || {}).reduce((sum, qty) => sum + qty, 0);
+    const pricePerCamera = 8500;
+    const calculatedPrice = totalCameras * pricePerCamera;
+    
+    // 로딩 메시지들 순차적으로 표시
+    const loadingMessages = [
+      '📍 설치 위치 분석 중...',
+      '🔍 최적의 카메라 모델 선택 중...',
+      '💰 최저가 견적 계산 중...',
+      '📊 설치비 및 부대비용 분석 중...',
+      '✨ 맞춤 견적서 작성 완료!'
+    ];
+    
+    // 순차적으로 로딩 메시지 표시
+    for (let i = 0; i < loadingMessages.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 500));
+      addMessage('loading', loadingMessages[i]);
+    }
+    
+    // 최종 견적 결과 표시
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const locationDetails = Object.entries(formData.installationQuantities || {})
+      .map(([location, qty]) => `${location}: ${qty}대`)
+      .join('\n');
+    
+    const quoteMessage = `🎉 **맞춤 견적서가 완성되었습니다!**
+
+📋 **설치 상세 정보**
+${locationDetails}
+
+💰 **예상 견적**
+• CCTV 대수: ${totalCameras}대
+• 대당 렌탈비: ${pricePerCamera.toLocaleString()}원/월
+• **월 렌탈비: ${calculatedPrice.toLocaleString()}원**
+
+✨ **포함 서비스**
+• 전문 설치 및 설정
+• 24시간 모니터링
+• 정기 점검 및 AS
+• 무료 교체 서비스
+
+⚡ **특별 혜택**
+• 첫 달 50% 할인
+• 설치비 무료 (30만원 상당)`;
+
+    addMessage('quote', quoteMessage);
+    
+    // FormData에 계산된 가격 저장
+    setFormData(prev => ({ ...prev, calculatedPrice }));
+    
+    // 1초 후 다음 단계로 이동
+    setTimeout(() => {
+      goToNextStep();
+    }, 2000);
+  };
+
   // 다음 단계로 이동
   const goToNextStep = () => {
     const nextStep = findNextValidStep(currentStep, formData);
@@ -371,6 +447,15 @@ const CCTVRentalQuote = () => {
           setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
           return;
         }
+      }
+      
+      // 🎯 견적 계산 단계인 경우 특별 처리
+      if ((step as any).isQuoteCalculation) {
+        console.log('💰 견적 계산 단계 진입');
+        handleQuoteCalculation();
+        setCurrentStep(nextStep);
+        setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
+        return;
       }
       
       // 동적 옵션 생성
@@ -572,8 +657,38 @@ const CCTVRentalQuote = () => {
   const handleSubmit = () => {
     setIsSubmitting(true);
     
+    // 📊 최종 데이터 스키마 정리
+    const finalData = {
+      // 기본 정보
+      installationPlace: formData.installationPlace,
+      businessType: formData.businessType,
+      businessTypeOther: formData.businessTypeOther,
+      businessSize: formData.businessSize,
+      
+      // 설치 정보
+      installationLocations: formData.installationLocations,
+      installationLocationOther: formData.installationLocationOther,
+      installationQuantities: formData.installationQuantities,
+      
+      // 견적 정보
+      calculatedPrice: formData.calculatedPrice,
+      finalQuoteMethod: formData.finalQuoteMethod,
+      
+      // 고객 정보
+      businessName: formData.businessName,
+      contactName: formData.contactName,
+      phone: formData.phone,
+      businessLocation: formData.businessLocation,
+      agreeTerms: formData.agreeTerms,
+      
+      // 메타 정보
+      submittedAt: new Date().toISOString(),
+      totalCameras: Object.values(formData.installationQuantities || {}).reduce((sum, qty) => sum + qty, 0),
+      monthlyRental: formData.calculatedPrice,
+    };
+    
     // ✨ 실제 구현에서는 API 호출로 데이터 전송
-    console.log('🎯 케어온 CCTV 렌탈 견적 요청 데이터:', formData);
+    console.log('🎯 케어온 CCTV 렌탈 견적 요청 데이터 (최종 스키마):', finalData);
     console.log('📊 설치 수량 상세:', formData.installationQuantities);
     
     setTimeout(() => {
@@ -599,7 +714,7 @@ const CCTVRentalQuote = () => {
           
           {/* ✨ 선택한 수량 정보 표시 */}
           {formData.installationQuantities && (
-            <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left">
+            <div className="bg-blue-50 rounded-lg p-4 mb-4 text-left">
               <h3 className="font-semibold text-gray-800 mb-2">📹 선택하신 CCTV 설치 정보</h3>
               <div className="space-y-1 text-sm text-gray-600">
                 {Object.entries(formData.installationQuantities).map(([location, quantity]) => (
@@ -612,6 +727,30 @@ const CCTVRentalQuote = () => {
                   <span>총 설치 수량</span>
                   <span>{Object.values(formData.installationQuantities).reduce((sum, qty) => sum + qty, 0)}대</span>
                 </div>
+              </div>
+            </div>
+          )}
+          
+          {/* 💰 견적 정보 및 선택한 방법 표시 */}
+          {formData.calculatedPrice && (
+            <div className="bg-green-50 rounded-lg p-4 mb-4 text-left">
+              <h3 className="font-semibold text-gray-800 mb-2">💰 견적 정보</h3>
+              <div className="space-y-1 text-sm text-gray-600">
+                <div className="flex justify-between">
+                  <span>월 렌탈비</span>
+                  <span className="font-bold text-green-600 text-lg">{formData.calculatedPrice.toLocaleString()}원</span>
+                </div>
+                {formData.finalQuoteMethod && (
+                  <div className="border-t pt-2 mt-2">
+                    <div className="font-medium text-gray-700">선택하신 진행 방식:</div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {formData.finalQuoteMethod.includes('다이렉트') ? 
+                        '💻 다이렉트 접수 - 온라인 바로 가입' : 
+                        '🏠 상세 실사 견적 - 전문가 방문 상담'
+                      }
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -858,6 +997,36 @@ const CCTVRentalQuote = () => {
             {message.type === 'user' && (
               <div className="bg-primary text-white rounded-lg p-3 shadow-sm max-w-[80%] break-words">
                 <p>{message.content}</p>
+              </div>
+            )}
+            
+            {message.type === 'loading' && (
+              <div className="bg-blue-50 rounded-lg p-3 shadow-sm max-w-[80%] break-words border border-blue-200">
+                <div className="flex items-center space-x-3">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+                  <p className="text-blue-700 font-medium">{message.content}</p>
+                </div>
+              </div>
+            )}
+            
+            {message.type === 'quote' && (
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 shadow-md max-w-[90%] break-words border border-green-200">
+                <div className="prose prose-sm max-w-none">
+                  {message.content.split('\n').map((line, index) => {
+                    if (line.startsWith('🎉 **') && line.endsWith('**')) {
+                      return <h3 key={index} className="text-lg font-bold text-green-700 mb-3">{line.replace(/\*\*/g, '')}</h3>;
+                    } else if (line.startsWith('📋 **') || line.startsWith('💰 **') || line.startsWith('✨ **') || line.startsWith('⚡ **')) {
+                      return <h4 key={index} className="text-md font-semibold text-gray-800 mt-4 mb-2">{line.replace(/\*\*/g, '')}</h4>;
+                    } else if (line.startsWith('• **') && line.endsWith('**')) {
+                      return <p key={index} className="text-primary font-bold text-lg my-1">{line.replace(/\*\*/g, '')}</p>;
+                    } else if (line.startsWith('•')) {
+                      return <p key={index} className="text-gray-700 my-1">{line}</p>;
+                    } else if (line.trim()) {
+                      return <p key={index} className="text-gray-700 my-1">{line}</p>;
+                    }
+                    return <br key={index} />;
+                  })}
+                </div>
               </div>
             )}
           </div>
