@@ -20,6 +20,7 @@ type FormData = {
   phone?: string;                       // 연락처
   agreeTerms?: string[];               // 동의사항들: 개인정보처리방침/마케팅수신
   finalQuoteMethod?: string;            // 최종 견적 방법: 다이렉트 접수 / 실사 견적
+  contactMethod?: string;               // 연락 방법: SMS / KakaoTalk / Phone / DirectCall
   calculatedPrice?: number;             // 계산된 견적 가격
 };
 
@@ -105,6 +106,17 @@ const FORM_STEPS = [
       '🏠 상세 실사 견적 요청 - 전문가 방문 (현재 무료 이벤트 중!)'
     ],
     conditional: (data: FormData) => !!data.calculatedPrice,
+  },
+  {
+    question: '어떤 방법으로 연락받으시겠어요?',
+    field: 'contactMethod',
+    options: [
+      '📱 문자 (SMS) - 빠른 연락',
+      '💬 카카오톡 - 편리한 상담',
+      '📞 전화로 받기 - 자세한 상담',
+      '☎️ 직접 전화걸기 - 즉시 상담'
+    ],
+    conditional: (data: FormData) => !!data.finalQuoteMethod,
   },
   {
     question: '사업체명을 알려주세요.',
@@ -729,6 +741,7 @@ ${locationDetails}
       // 견적 정보
       calculatedPrice: formData.calculatedPrice,
       finalQuoteMethod: formData.finalQuoteMethod,
+      contactMethod: formData.contactMethod,
       
       // 고객 정보
       businessName: formData.businessName,
@@ -804,6 +817,17 @@ ${locationDetails}
                         '💻 다이렉트 접수 - 온라인 바로 가입' : 
                         '🏠 상세 실사 견적 - 전문가 방문 상담'
                       }
+                    </div>
+                  </div>
+                )}
+                {formData.contactMethod && (
+                  <div className="border-t pt-2 mt-2">
+                    <div className="font-medium text-gray-700">연락 방법:</div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {formData.contactMethod.includes('문자') && '📱 문자 (SMS) - 빠른 연락'}
+                      {formData.contactMethod.includes('카카오톡') && '💬 카카오톡 - 편리한 상담'}
+                      {formData.contactMethod.includes('전화로 받기') && '📞 전화로 받기 - 자세한 상담'}
+                      {formData.contactMethod.includes('직접 전화걸기') && '☎️ 직접 전화걸기 - 즉시 상담'}
                     </div>
                   </div>
                 )}
