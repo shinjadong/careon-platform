@@ -928,7 +928,7 @@ ${locationDetails}
                       <button
                         onClick={() => {
                           const field = message.field!;
-                          const currentStep = FORM_STEPS.find(step => step.field === field);
+                          const currentStepObj = FORM_STEPS.find(step => step.field === field);
                           
                           // 필수 선택 확인
                           if (field === 'agreeTerms') {
@@ -947,6 +947,8 @@ ${locationDetails}
                           setTimeout(() => {
                             // installationLocations의 경우 수량 선택 단계 확인
                             if (field === 'installationLocations') {
+                              console.log('🔍 현재 단계 번호:', currentStep);
+                              console.log('🔍 업데이트된 formData:', updatedFormData);
                               const nextStep = findNextValidStep(currentStep, updatedFormData);
                               if (nextStep < FORM_STEPS.length) {
                                 const step = FORM_STEPS[nextStep];
@@ -976,6 +978,12 @@ ${locationDetails}
                                     setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
                                     return;
                                   }
+                                } else if ((step as any).isQuoteCalculation) {
+                                  console.log('💰 견적 계산 단계 진입');
+                                  handleQuoteCalculation();
+                                  setCurrentStep(nextStep);
+                                  setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
+                                  return;
                                 }
                                 
                                 // 일반 단계 처리
