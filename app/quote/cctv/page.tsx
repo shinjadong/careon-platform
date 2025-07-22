@@ -276,7 +276,8 @@ const CCTVRentalQuote = () => {
       console.log(`단계 ${i} 확인:`, {
         field: step.field,
         hasConditional: !!step.conditional,
-        quantitySelection: step.quantitySelection
+        quantitySelection: step.quantitySelection,
+        isQuoteCalculation: (step as any).isQuoteCalculation
       });
       
       // 조건부 단계가 아니거나, 조건을 만족하는 경우
@@ -356,10 +357,16 @@ const CCTVRentalQuote = () => {
     // 초기 메시지
     addMessage('system', '선택하신 결과를 기반으로 최저가 견적을 내드릴게요.');
     
+    // 현재 formData에서 수량 정보 가져오기
+    const currentQuantities = formData.installationQuantities || {};
+    console.log('🔍 견적 계산용 수량 데이터:', currentQuantities);
+    
     // 총 CCTV 대수 계산
-    const totalCameras = Object.values(formData.installationQuantities || {}).reduce((sum, qty) => sum + qty, 0);
+    const totalCameras = Object.values(currentQuantities).reduce((sum, qty) => sum + qty, 0);
     const pricePerCamera = 8500;
     const calculatedPrice = totalCameras * pricePerCamera;
+    
+    console.log(`📊 견적 계산: ${totalCameras}대 × ${pricePerCamera}원 = ${calculatedPrice}원`);
     
     // 로딩 메시지들 순차적으로 표시
     const loadingMessages = [
@@ -379,7 +386,7 @@ const CCTVRentalQuote = () => {
     // 최종 견적 결과 표시
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const locationDetails = Object.entries(formData.installationQuantities || {})
+    const locationDetails = Object.entries(currentQuantities)
       .map(([location, qty]) => `${location}: ${qty}대`)
       .join('\n');
     
@@ -590,13 +597,39 @@ ${locationDetails}
       const totalQuantity = Object.values(newSelectedQuantities).reduce((sum, qty) => sum + qty, 0);
       
       // FormData에 저장
-      setFormData(prev => ({ ...prev, installationQuantities: newSelectedQuantities }));
+      const updatedFormData = { ...formData, installationQuantities: newSelectedQuantities };
+      setFormData(updatedFormData);
       
       setTimeout(() => {
         addMessage('user', `✅ 총 ${totalQuantity}대 선택 완료!`);
         setTimeout(() => {
-          console.log('다음 단계로 이동');
-          goToNextStep();
+          console.log('다음 단계로 이동, 업데이트된 formData:', updatedFormData);
+          // 업데이트된 formData를 직접 사용하여 다음 단계 찾기
+          const nextStep = findNextValidStep(currentStep, updatedFormData);
+          if (nextStep < FORM_STEPS.length) {
+            const step = FORM_STEPS[nextStep];
+            
+            // 🎯 견적 계산 단계인 경우 특별 처리
+            if ((step as any).isQuoteCalculation) {
+              console.log('💰 견적 계산 단계 진입');
+              handleQuoteCalculation();
+              setCurrentStep(nextStep);
+              setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
+              return;
+            }
+            
+            // 일반 단계 처리
+            let options = step.options || [];
+            if ((step as any).dynamic && step.field) {
+              options = generateDynamicOptions(step.field, updatedFormData);
+            }
+            
+            addMessage('system', step.question, options, step.field);
+            setCurrentStep(nextStep);
+            setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
+          } else {
+            handleSubmit();
+          }
         }, 500);
       }, 500);
     }
