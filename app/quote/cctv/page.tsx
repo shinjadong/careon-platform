@@ -427,8 +427,53 @@ const CCTVRentalQuote = () => {
         setSelectedMultiples([]);
         
         setTimeout(() => {
-          console.log('🚀 installationLocations 다음 단계 이동');
-          goToNextStep();
+          console.log('🚀 installationLocations 다음 단계 이동, 업데이트된 formData:', updatedFormData);
+          // 업데이트된 formData를 직접 사용하여 다음 단계 찾기
+          const nextStep = findNextValidStep(currentStep, updatedFormData);
+          if (nextStep < FORM_STEPS.length) {
+            const step = FORM_STEPS[nextStep];
+            
+            // 수량 선택 단계인 경우 특별 처리
+            if (step.quantitySelection) {
+              console.log('🎯 수량 선택 단계 진입');
+              const locations = updatedFormData.installationLocations || [];
+              const filteredLocations = locations.filter(loc => loc !== '📱 기타위치');
+              
+              console.log('📍 필터링된 위치들:', filteredLocations);
+              
+              if (filteredLocations.length > 0) {
+                // quantitySelection 상태 초기화
+                const newQuantitySelection = {
+                  currentLocationIndex: 0,
+                  selectedQuantities: {},
+                  locations: filteredLocations
+                };
+                
+                console.log('🔧 quantitySelection 초기화:', newQuantitySelection);
+                setQuantitySelection(newQuantitySelection);
+                
+                const firstLocation = filteredLocations[0];
+                const question = `${firstLocation}에 몇 대의 CCTV를 설치하시겠어요?`;
+                
+                addMessage('system', question, step.options || [], step.field);
+                setCurrentStep(nextStep);
+                setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
+                return;
+              }
+            }
+            
+            // 일반 단계 처리
+            let options = step.options || [];
+            if (step.dynamic && step.field) {
+              options = generateDynamicOptions(step.field, updatedFormData);
+            }
+            
+            addMessage('system', step.question, options, step.field);
+            setCurrentStep(nextStep);
+            setProgress(Math.min(100, Math.round((nextStep / FORM_STEPS.length) * 100)));
+          } else {
+            handleSubmit();
+          }
         }, 500);
       }
     }
