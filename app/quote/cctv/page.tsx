@@ -439,6 +439,8 @@ const CCTVRentalQuote = () => {
     console.log('🔥 handleQuantitySelect 호출됨:', quantity);
     console.log('현재 quantitySelection 상태:', JSON.stringify(quantitySelection, null, 2));
     console.log('현재 formData.installationLocations:', formData.installationLocations);
+    console.log('quantitySelection.locations:', quantitySelection.locations);
+    console.log('quantitySelection.currentLocationIndex:', quantitySelection.currentLocationIndex);
     
     // locations가 비어있으면 formData에서 다시 가져오기
     let filteredLocations = quantitySelection.locations;
@@ -450,7 +452,9 @@ const CCTVRentalQuote = () => {
       // quantitySelection 상태 복구
       setQuantitySelection(prev => ({
         ...prev,
-        locations: filteredLocations
+        locations: filteredLocations,
+        currentLocationIndex: prev.currentLocationIndex || 0,
+        selectedQuantities: prev.selectedQuantities || {}
       }));
     }
     
@@ -491,7 +495,7 @@ const CCTVRentalQuote = () => {
       setQuantitySelection({
         currentLocationIndex: nextLocationIndex,
         selectedQuantities: newSelectedQuantities,
-        locations: quantitySelection.locations
+        locations: filteredLocations // filteredLocations 사용
       });
       
       setTimeout(() => {
@@ -506,13 +510,10 @@ const CCTVRentalQuote = () => {
       setQuantitySelection({
         currentLocationIndex: nextLocationIndex,
         selectedQuantities: newSelectedQuantities,
-        locations: quantitySelection.locations
+        locations: filteredLocations // filteredLocations 사용
       });
       
       const totalQuantity = Object.values(newSelectedQuantities).reduce((sum, qty) => sum + qty, 0);
-      const summaryText = Object.entries(newSelectedQuantities)
-        .map(([location, qty]) => `${location}: ${qty}대`)
-        .join(', ');
       
       // FormData에 저장
       setFormData(prev => ({ ...prev, installationQuantities: newSelectedQuantities }));
