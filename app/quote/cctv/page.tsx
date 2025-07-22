@@ -722,48 +722,67 @@ ${locationDetails}
   };
   
   // 폼 제출 처리
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     
-    // 📊 최종 데이터 스키마 정리
-    const finalData = {
-      // 기본 정보
-      installationPlace: formData.installationPlace,
-      businessType: formData.businessType,
-      businessTypeOther: formData.businessTypeOther,
-      businessSize: formData.businessSize,
+    try {
+      // 📊 최종 데이터 스키마 정리
+      const finalData = {
+        // 기본 정보
+        installationPlace: formData.installationPlace,
+        businessType: formData.businessType,
+        businessTypeOther: formData.businessTypeOther,
+        businessSize: formData.businessSize,
+        
+        // 설치 정보
+        installationLocations: formData.installationLocations,
+        installationLocationOther: formData.installationLocationOther,
+        installationQuantities: formData.installationQuantities,
+        
+        // 견적 정보
+        calculatedPrice: formData.calculatedPrice,
+        finalQuoteMethod: formData.finalQuoteMethod,
+        contactMethod: formData.contactMethod,
+        
+        // 고객 정보
+        businessName: formData.businessName,
+        contactName: formData.contactName,
+        phone: formData.phone,
+        businessLocation: formData.businessLocation,
+        agreeTerms: formData.agreeTerms,
+      };
       
-      // 설치 정보
-      installationLocations: formData.installationLocations,
-      installationLocationOther: formData.installationLocationOther,
-      installationQuantities: formData.installationQuantities,
+      console.log('🎯 CCTV 견적 요청 데이터 전송 중:', finalData);
       
-      // 견적 정보
-      calculatedPrice: formData.calculatedPrice,
-      finalQuoteMethod: formData.finalQuoteMethod,
-      contactMethod: formData.contactMethod,
+      // API 호출로 데이터 전송
+      const response = await fetch('/api/cctv-quotes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(finalData),
+      });
       
-      // 고객 정보
-      businessName: formData.businessName,
-      contactName: formData.contactName,
-      phone: formData.phone,
-      businessLocation: formData.businessLocation,
-      agreeTerms: formData.agreeTerms,
+      const result = await response.json();
       
-      // 메타 정보
-      submittedAt: new Date().toISOString(),
-      totalCameras: Object.values(formData.installationQuantities || {}).reduce((sum, qty) => sum + qty, 0),
-      monthlyRental: formData.calculatedPrice,
-    };
-    
-    // ✨ 실제 구현에서는 API 호출로 데이터 전송
-    console.log('🎯 케어온 CCTV 렌탈 견적 요청 데이터 (최종 스키마):', finalData);
-    console.log('📊 설치 수량 상세:', formData.installationQuantities);
-    
-    setTimeout(() => {
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || '견적 요청 처리 중 오류가 발생했습니다.');
+      }
+      
+      console.log('✅ 견적 요청 성공:', result);
+      
+      // 성공 시 완료 화면으로 전환
       setIsSubmitted(true);
       setIsSubmitting(false);
-    }, 1000);
+      
+    } catch (error: any) {
+      console.error('❌ 견적 요청 실패:', error);
+      
+      // 에러 메시지 표시
+      addMessage('system', `❌ 견적 요청 처리 중 오류가 발생했습니다: ${error.message}\n\n다시 시도해주세요.`);
+      
+      setIsSubmitting(false);
+    }
   };
   
   if (isSubmitted) {
